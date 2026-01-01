@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кошик</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <a href="index.html" class="logo">
+    <span class="logo-icon">🛍️</span>
+    <span>SHOP</span>
+  </a>
+  <div class="header-search">
+    <div class="search-wrapper">
+      <span class="search-icon">🔍</span>
+      <input id="search" placeholder="Пошук товарів...">
+    </div>
+  </div>
+  <div class="controls">
+    <button class="btn-icon" onclick="toggleLang()" title="Змінити мову">🌐</button>
+    <button class="btn-icon" onclick="toggleTheme()" title="Темна/Світла тема">🌙</button>
+    <a href="cart.html" class="cart-link">
+      <span class="cart-icon">🛒</span>
+      <span class="cart-badge" id="cartCount">0</span>
+    </a>
+  </div>
+</header>
+
+<div class="container">
+  <a href="index.html" class="catalog-btn" id="catalogBtn">← Каталог</a>
+  <h1>Кошик</h1>
+  <div id="cart"></div>
+  <button class="primary" onclick="checkout()">Оформити</button>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-content">
+    <div class="footer-info">
+      <p>&copy; 2024 SHOP. Всі права захищені.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script src="cities.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

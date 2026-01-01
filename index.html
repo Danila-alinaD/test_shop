@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Каталог</title>
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<header class="top">
+  <div class="logo">
+    <span class="logo-icon">🛍️</span>
+    <span>SHOP</span>
+  </div>
+  <div class="header-search">
+    <div class="search-wrapper">
+      <span class="search-icon">🔍</span>
+      <input id="search" placeholder="Пошук товарів...">
+    </div>
+  </div>
+  <div class="controls">
+    <button class="btn-icon" onclick="toggleLang()" title="Змінити мову">🌐</button>
+    <button class="btn-icon" onclick="toggleTheme()" title="Темна/Світла тема">🌙</button>
+    <a href="cart.html" class="cart-link">
+      <span class="cart-icon">🛒</span>
+      <span class="cart-badge" id="cartCount">0</span>
+    </a>
+  </div>
+</header>
+
+<!-- Карусель банерів -->
+<div class="banner-carousel">
+  <div class="carousel-container">
+    <div class="carousel-slide active">
+      <div class="slide-content">
+        <img src="img/p_uni.jpg.webp" alt="Банер 1">
+        <div class="slide-overlay">
+          <h2>Нові колекції</h2>
+          <p>Відкрийте для себе унікальні товари</p>
+        </div>
+      </div>
+    </div>
+    <div class="carousel-slide">
+      <div class="slide-content">
+        <img src="img/p_uni.jpg.webp" alt="Банер 2">
+        <div class="slide-overlay">
+          <h2>Спеціальні пропозиції</h2>
+          <p>Знижки до 50% на обрані товари</p>
+        </div>
+      </div>
+    </div>
+    <div class="carousel-slide">
+      <div class="slide-content">
+        <img src="img/p_uni.jpg.webp" alt="Банер 3">
+        <div class="slide-overlay">
+          <h2>Якість та стиль</h2>
+          <p>Тільки найкраще для вас</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="carousel-btn prev" onclick="changeSlide(-1)">‹</button>
+  <button class="carousel-btn next" onclick="changeSlide(1)">›</button>
+  <div class="carousel-dots">
+    <span class="dot active" onclick="currentSlide(1)"></span>
+    <span class="dot" onclick="currentSlide(2)"></span>
+    <span class="dot" onclick="currentSlide(3)"></span>
+  </div>
+</div>
+
+<!-- Блоки категорій -->
+<div class="container">
+  <div class="category-blocks">
+    <div class="category-block" onclick="filterByCategory('coloring')">
+      <div class="category-icon">🎨</div>
+      <h2>РОЗМАЛЬОВКИ</h2>
+      <p>Виберіть розмальовки</p>
+    </div>
+    <div class="category-block" onclick="filterByCategory('stickers')">
+      <div class="category-icon">✨</div>
+      <h2>СТІКЕРИ</h2>
+      <p>Виберіть стікери</p>
+    </div>
+  </div>
+  <button class="show-all-btn" onclick="showAllProducts()">Показати всі товари</button>
+</div>
+
+<div class="container">
+  <h1 class="page-title">Каталог товарів</h1>
+  <div id="catalog" class="grid"></div>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-content">
+    <div class="footer-info">
+      <p>&copy; 2024 SHOP. Всі права захищені.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script src="cities.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
