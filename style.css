@@ -77,14 +77,18 @@ body {
 }
 
 /* Кнопка "Каталог" */
+/* Кнопка "Каталог" */
 .catalog-btn {
-  display: inline-block;
+  display: block;
   margin-top: 20px;
   margin-bottom: 20px;
+  margin-left: 20px;
+  padding-left: 0;
   color: var(--text);
   text-decoration: none;
   font-weight: 500;
   transition: var(--transition);
+  width: fit-content;
 }
 
 .catalog-btn:hover {
@@ -1774,5 +1778,288 @@ body {
     margin: 15px 10px;
     padding: 14px 24px;
     font-size: 16px;
+  }
+}
+/* Стилі для посилання на Telegram */
+.telegram-link {
+  background: linear-gradient(135deg, #0088cc 0%, #229ED9 100%);
+  color: white;
+  border: none;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.telegram-link:hover {
+  background: linear-gradient(135deg, #006ba3 0%, #1a7fb8 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 136, 204, 0.4);
+}
+
+.telegram-link span {
+  font-size: 18px;
+}
+/* Красива кнопка оформлення замовлення */
+.checkout-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px 40px;
+  border: none;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 40px auto;
+  max-width: 400px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.checkout-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.checkout-btn:hover::before {
+  left: 100%;
+}
+
+.checkout-btn:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.6);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.checkout-btn:active {
+  transform: translateY(-2px) scale(1);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.checkout-icon {
+  font-size: 24px;
+  display: inline-block;
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+.checkout-arrow {
+  font-size: 20px;
+  transition: transform 0.3s ease;
+}
+
+.checkout-btn:hover .checkout-arrow {
+  transform: translateX(5px);
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+    opacity: 0.8;
+  }
+}
+
+/* Адаптивність для кнопки */
+@media (max-width: 768px) {
+  .checkout-btn {
+    padding: 18px 32px;
+    font-size: 16px;
+    max-width: 100%;
+  }
+  
+  .checkout-icon {
+    font-size: 20px;
+  }
+  
+  .checkout-arrow {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .checkout-btn {
+    padding: 16px 24px;
+    font-size: 15px;
+    gap: 10px;
+  }
+}
+/* Навігація в хедері */
+.header-nav {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.nav-link {
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 15px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--gradient);
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover {
+  color: var(--accent);
+  transform: none;
+  box-shadow: none;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.nav-link:active {
+  transform: none;
+}
+
+/* Активна кнопка "Про нас" */
+.nav-link.active {
+  color: var(--accent);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.nav-link.active::after {
+  width: 100%;
+}
+/* Сторінка "Про нас" */
+.about-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.about-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 40px;
+  text-align: center;
+  color: var(--primary-color);
+}
+
+.about-section {
+  margin-bottom: 50px;
+}
+
+.about-section h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--text-color);
+}
+.about-content {
+  background: var(--card);
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.about-content h2 {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+}
+
+.about-content p {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--text);
+}
+
+.about-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+  margin-bottom: 50px;
+}
+.feature-card {
+  background: var(--card);
+  padding: 30px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+.feature-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.feature-card h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+.feature-card p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text);
+  opacity: 0.8;
+}
+/* Адаптивність для сторінки "Про нас" */
+@media (max-width: 768px) {
+  .about-title {
+    font-size: 2rem;
+  }
+  
+  .about-features {
+    grid-template-columns: 1fr;
+  }
+  
+  .about-content {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-page {
+    padding: 20px 10px;
+  }
+  
+  .about-title {
+    font-size: 1.5rem;
+  }
+  
+  .about-section h2 {
+    font-size: 1.4rem;
   }
 }
