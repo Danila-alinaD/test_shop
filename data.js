@@ -1,43 +1,43 @@
 const products = [{id:1, category:1,
-    images:["img/p_uni.jpg.webp","img/p_uni.jpg.webp","img/p_uni.jpg.webp"],
-    uk:{name:"Розмальовка 1", desc:"Опис товару 1", material:"Папір", size:"120x150", quantity:"1 шт", weight:"200 г", price:220},
-    ru:{name:"Товар 1", desc:"Описание товара 1", material:"Материал", size:"Размер", quantity:"1 шт", weight:"200 г", price:100}
+    images:["img/patrul_1.jpg","img/patrul_1.jpg","img/patrul_1.jpg"],
+    uk:{name:"Розмальовка Щенячий патруль", desc:"Яскрава дитяча розмальовка з улюбленими героями мультсеріалу «Щенячий патруль». Містить великі чіткі контури персонажів, які зручно розфарбовувати олівцями або фломастерами.", material:"Папір", size:"120x150", quantity:"1 шт", weight:"200 г", price:220},
+    ru:{name:"Раскраска Щенячий патруль", desc:"Яркая детская раскраска с любимыми героями мультсериала «Щенячий патруль». Большие четкие контуры персонажей, которые удобно раскрашивать карандашами или фломастерами.", material:"Папір", size:"120x150", quantity:"1 шт", weight:"200 г", price:220}
     },{id:2, category:1,
-    images:["img/p_uni.jpg.webp","img/p_uni.jpg.webp","img/p_uni.jpg.webp"],
-    uk:{name:"Розмальовка 2", desc:"Опис товару 2", material:"Папір", size:"120x150", quantity:"1 шт", weight:"200 г", price:220},
-    ru:{name:"Товар 2", desc:"Описание товара 2", material:"Материал", size:"120x150", quantity:"1 шт", weight:"200 г", price:200}
+    images:["img/labubu_1.jpg","img/labubu_1.jpg","img/labubu_1.jpg"],
+    uk:{name:"Розмальовка Лабубу Labubu", desc:"Велика розмальовка з багатьма кумедними образами Лабубу на одному аркуші. Персонажі зображені в різних настроях, костюмах і ситуаціях — веселі, милі та трохи бешкетні. Розмальовка виглядає як велика ілюстрація, яку цікаво розфарбовувати довго й поступово, відкриваючи нові деталі. Підійде для дітей і дорослих, які люблять персонажів і творче розслаблення.", material:"Папір", size:"120x150", quantity:"1 шт", weight:"200 г", price:220},
+    ru:{name:"Раскраска Лабубу Labubu", desc:"Большая раскраска с множеством забавных образов Лабубу на одном листе. Персонажи изображены в разных настроениях, костюмах и ситуациях — веселые, милые и немного забавные. Раскраска выглядит как большая иллюстрация, которую интересно раскрашивать долго и постепенно, открывая новые детали. Подходит для детей и взрослых, которые любят персонажей и творческое расслабление.", material:"Папір", size:"120x150", quantity:"1 шт", weight:"200 г", price:220}
     },{id:3, category:1,
-    images:["img/p_uni.jpg.webp","img/p_uni.jpg.webp","img/p_uni.jpg.webp"],
-    uk:{name:"Розмальовка 3", desc:"Опис товару 3", material:"Папір", size:"120x150", quantity:"1 шт", weight:"200 г", price:220},
-    ru:{name:"Товар 3", desc:"Описание товара 3", material:"Материал", size:"Размер", quantity:"1 шт", weight:"75 г", price:300}
+    images:["img/auto_1.jpg","img/auto_1.jpg","img/auto_1.jpg"],
+    uk:{name:"Розмальовка Автомобілі", desc:"Розмальовка з різними автомобілями: легкові машини, спортивні авто, вантажівки та міський транспорт. Чіткі контури й цікаві деталі роблять її зручною для розфарбовування олівцями або фломастерами. Чудово підійде для тих, хто любить машинки.", material:"Папір", size:"120x150", quantity:"1 шт", weight:"200 г", price:220},
+    ru:{name:"Раскраска Автомобили", desc:"Раскраска с разными автомобилями: легковые машины, спортивные автомобили, грузовики и городской транспорт. Четкие контуры и интересные детали делают ее удобной для раскрашивания карандашами или фломастерами. Отлично подойдет для тех, кто любит машинки.", material:"Папір", size:"120x150", quantity:"1 шт", weight:"200 г", price:220}
     },{id:4, category:1,
-    images:["img/p_uni.jpg.webp","img/p_uni.jpg.webp","img/p_uni.jpg.webp"],
-    uk:{name:"Розмальовка 4", desc:"Опис товару 4", material:"Папір", size:"120x150", quantity:"1 шт", weight:"200 г", price:220},
-    ru:{name:"Товар 4", desc:"Описание товара 4", material:"Материал", size:"Размер", quantity:"1 шт", weight:"60 г", price:400}
+    images:["img/memes_1.jpg","img/memes_1.jpg","img/memes_1.jpg"],
+    uk:{name:"Розмальовка Меми", desc:"Опис товару 4", material:"Папір", size:"120x150", quantity:"1 шт", weight:"200 г", price:220},
+    ru:{name:"Раскраска 4", desc:"Описание товара 4", material:"Материал", size:"Размер", quantity:"1 шт", weight:"60 г", price:400}
     },{id:5, category:1,
-    images:["img/p_uni.jpg.webp","img/p_uni.jpg.webp","img/p_uni.jpg.webp"],
-    uk:{name:"Розмальовка 5", desc:"Опис товару 5", material:"Папір", size:"120x150", quantity:"1 шт", weight:"200 г", price:220},
-    ru:{name:"Товар 5", desc:"Описание товара 5", material:"Материал", size:"Размер", quantity:"1 шт", weight:"90 г", price:500}
+    images:["img/barbie_1.jpg","img/barbie_1.jpg","barbie_1.jpg"],
+    uk:{name:"Розмальовка Барбі", desc:"Опис товару 5", material:"Папір", size:"120x150", quantity:"1 шт", weight:"200 г", price:220},
+    ru:{name:"Раскраска 5", desc:"Описание товара 5", material:"Материал", size:"Размер", quantity:"1 шт", weight:"90 г", price:500}
     },{id:6, category:1,
-    images:["img/p_uni.jpg.webp","img/p_uni.jpg.webp","img/p_uni.jpg.webp"],
-    uk:{name:"Розмальовка 6", desc:"Опис товару 6", material:"Папір", size:"120x150", quantity:"1 шт", weight:"200 г", price:220},
-    ru:{name:"Товар 6", desc:"Описание товара 6", material:"Материал", size:"Размер", quantity:"1 шт", weight:"125 г", price:600}
+    images:["img/pepa_1.jpg","img/pepa_1.jpg","img/pepa_1.jpg"],
+    uk:{name:"Розмальовка Cвинка Пепа", desc:"Опис товару 6", material:"Папір", size:"120x150", quantity:"1 шт", weight:"200 г", price:220},
+    ru:{name:"Раскраска 6", desc:"Описание товара 6", material:"Материал", size:"Размер", quantity:"1 шт", weight:"125 г", price:600}
     },{id:7, category:1,
     images:["img/p_uni.jpg.webp","img/p_uni.jpg.webp","img/p_uni.jpg.webp"],
     uk:{name:"Розмальовка 7", desc:"Опис товару 7", material:"Папір", size:"120x150", quantity:"1 шт", weight:"200 г", price:220},
-    ru:{name:"Товар 7", desc:"Описание товара 7", material:"Материал", size:"Размер", quantity:"1 шт", weight:"150 г", price:700}
+    ru:{name:"Раскраска 7", desc:"Описание товара 7", material:"Материал", size:"Размер", quantity:"1 шт", weight:"150 г", price:700}
     },{id:8, category:1,
     images:["img/p_uni.jpg.webp","img/p_uni.jpg.webp","img/p_uni.jpg.webp"],
     uk:{name:"Розмальовка 8", desc:"Опис товару 8", material:"Папір", size:"120x150", quantity:"1 шт", weight:"200 г", price:220},
-    ru:{name:"Товар 8", desc:"Описание товара 8", material:"Материал", size:"Размер", quantity:"1 шт", weight:"55 г", price:800}
+    ru:{name:"Раскраска 8", desc:"Описание товара 8", material:"Материал", size:"Размер", quantity:"1 шт", weight:"55 г", price:800}
     },{id:9, category:1,
     images:["img/p_uni.jpg.webp","img/p_uni.jpg.webp","img/p_uni.jpg.webp"],
     uk:{name:"Розмальовка 9", desc:"Опис товару 9", material:"Папір", size:"120x150", quantity:"1 шт", weight:"200 г", price:220},
-    ru:{name:"Товар 9", desc:"Описание товара 9", material:"Материал", size:"Размер", quantity:"1 шт", weight:"80 г", price:900}
+    ru:{name:"Раскраска 9", desc:"Описание товара 9", material:"Материал", size:"Размер", quantity:"1 шт", weight:"80 г", price:900}
     },{id:10, category:1,
     images:["img/p_uni.jpg.webp","img/p_uni.jpg.webp","img/p_uni.jpg.webp"],
     uk:{name:"Розмальовка 10", desc:"Опис товару 10", material:"Папір", size:"120x150", quantity:"1 шт", weight:"70 г", price:220},
-    ru:{name:"Товар 10", desc:"Описание товара 10", material:"Материал", size:"Размер", quantity:"1 шт", weight:"70 г", price:1000}
+    ru:{name:"Раскраска 10", desc:"Описание товара 10", material:"Материал", size:"Размер", quantity:"1 шт", weight:"70 г", price:1000}
     },{id:11, category:1,
     images:["img/stikersps_1.jpg","img/stikersps_1.jpg","img/stikersps_1.jpg"],
     uk:{name:"Стікери Playstation Classic", desc:"Набір наліпок, натхненний атмосферою олдскульних ігор на PlayStation — зі швидкістю Ridge Racer, похмурим вайбом першого Killzone та футуристичною енергією Wipeout. Для тих, хто пам’ятає звук завантаження консолі й любов до епохи класичної PlayStation.", material:"ПВХ", size:"10.5х18.5", quantity:"1 шт", weight:"20 г", price:90},
@@ -56,7 +56,7 @@ const products = [{id:1, category:1,
     ru:{name:"Стикеры по аниме Лето, когда умер Хикару", desc:"Стикеры за мотивами аниме «Лето, когда умер Хикару», выполненные с легким, немного веселым настроением, который контрастирует с оригинальной историей. Сочетание летней атмосферы и мягкого юмора делает их приятным акцентом для ежедневных вещей и фанатов аниме.", material:"ПВХ", size:"15х10", quantity:"1 шт", weight:"35 г", price:40}
     },{id:15, category:1,
     images:["img/p_uni.jpg.webp","img/p_uni.jpg.webp","img/p_uni.jpg.webp"],
-    uk:{name:"Товар 15", desc:"Опис товару 15", material:"Матеріал", size:"Розмір", quantity:"210 шт", weight:"105 г", price:1500},
+    uk:{name:"Стікери Чернівці", desc:"Опис товару 15", material:"Матеріал", size:"Розмір", quantity:"210 шт", weight:"105 г", price:1500},
     ru:{name:"Товар 15", desc:"Описание товара 15", material:"Материал", size:"Размер", quantity:"210 шт", weight:"105 г", price:1500}
     },{id:16, category:1,
     images:["img/p_uni.jpg.webp","img/p_uni.jpg.webp","img/p_uni.jpg.webp"],

@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://yoursite.com/sitemap.xml
+
+# Заборонені сторінки (якщо потрібно)
+# Disallow: /admin/
+# Disallow: /private/
+

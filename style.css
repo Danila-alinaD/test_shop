@@ -1236,14 +1236,23 @@ body {
 @media (max-width: 768px) {
   .top {
     padding: 15px 20px;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 15px;
+    position: relative;
   }
   
   .logo {
     font-size: 20px;
-    width: 100%;
+    flex: 1;
     justify-content: center;
+    text-align: center;
+  }
+  
+  .header-nav {
+    flex-shrink: 0;
+    position: absolute;
+    right: 20px;
   }
   
   .header-search {
