@@ -1,29 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --bg: #f8f9fa;
-  --text: #1a1a1a;
+  --bg: #fef7ff;
+  --text: #2d1b3d;
   --card: #ffffff;
-  --accent: #6366f1;
-  --accent-hover: #4f46e5;
-  --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-  --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.15);
-  --border-radius: 16px;
+  --accent: #a855f7;
+  --accent-hover: #9333ea;
+  --gradient: linear-gradient(135deg, #ec4899 0%, #a855f7 50%, #8b5cf6 100%);
+  --gradient-2: linear-gradient(135deg, #f472b6 0%, #a855f7 100%);
+  --shadow: 0 4px 6px rgba(168, 85, 247, 0.2);
+  --shadow-hover: 0 20px 40px rgba(168, 85, 247, 0.3);
+  --border-radius: 20px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --border: #e0e0e0;
+  --border: #f3e8ff;
 }
 
 body.dark {
-  --bg: #0f0f23;
-  --text: #e0e0e0;
-  --card: #1a1a2e;
-  --accent: #818cf8;
-  --accent-hover: #a5b4fc;
-  --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.5);
-  --border: #2a2a3e;
+  --bg: #1a0f2e;
+  --text: #fef7ff;
+  --card: #2d1b3d;
+  --accent: #c084fc;
+  --accent-hover: #d8b4fe;
+  --shadow: 0 4px 6px rgba(192, 132, 252, 0.2);
+  --shadow-hover: 0 20px 40px rgba(192, 132, 252, 0.3);
+  --border: #3d2a4d;
 }
 
 * {
@@ -1239,32 +1239,32 @@ body {
     flex-direction: row;
     flex-wrap: wrap;
     gap: 15px;
-    position: relative;
   }
   
   .logo {
     font-size: 20px;
-    flex: 1;
+    width: 100%;
     justify-content: center;
     text-align: center;
+    order: 1;
   }
   
   .header-nav {
-    flex-shrink: 0;
-    position: absolute;
-    right: 20px;
+    order: 2;
+    margin-right: auto;
+    margin-left: 0;
   }
   
   .header-search {
     width: 100%;
     max-width: 100%;
-    order: 3;
+    order: 4;
   }
   
   .controls {
-    width: 100%;
-    justify-content: center;
     order: 2;
+    margin-left: auto;
+    gap: 10px;
   }
   
   .banner-carousel {

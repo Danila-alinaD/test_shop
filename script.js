@@ -24,6 +24,8 @@ const translations = {
     novaPoshtaPostomat: 'Нова пошта (поштомат)',
     ukrposhta: 'Укрпошта',
     shippingToday: 'Відправка сьогодні',
+    shippingNextDay: 'ПН-ПТ',
+    shippingNotice: 'Замовлення, зроблені сьогодні, будуть відправлені на наступний робочий день. Субота та Неділя - вихідні.',
     free: 'Безкоштовно',
     tabDescription: 'Опис',
     tabSpecs: 'Характеристики',
@@ -35,7 +37,7 @@ const translations = {
     remove: 'Видалити',
     checkout: 'Оформити замовлення',
     total: 'Загалом:',
-    copyright: '© 2026 SHOP. Всі права захищені.',
+    copyright: '© 2026 Tutsi Shop. Всі права захищені.',
     banner1Title: 'Нові колекції',
     banner1Text: 'Відкрийте для себе унікальні товари',
     banner2Title: 'Спеціальні пропозиції',
@@ -62,6 +64,7 @@ const translations = {
     checkoutWarehouse: 'Відділення Нової Пошти *',
     checkoutWarehousePlaceholder: 'Введіть номер або адресу відділення',
     checkoutNoCities: 'Міста не знайдено',
+    coloringDeliveryNotice: 'Увага! Розмальовки висилаються у тубусах 120см, тому доставка у поштомати неможлива',
     categoryColoring: 'РОЗМАЛЬОВКИ',
     categoryColoringDesc: 'Виберіть розмальовки',
     categoryStickers: 'СТІКЕРИ',
@@ -83,6 +86,8 @@ const translations = {
     novaPoshtaPostomat: 'Новая почта (поштомат)',
     ukrposhta: 'Укрпошта',
     shippingToday: 'Отправка сегодня',
+    shippingNextDay: 'ПН-ПТ',
+    shippingNotice: 'Заказы, сделанные сегодня, будут отправлены на следующий рабочий день. Суббота и Воскресенье - выходные.',
     free: 'Бесплатно',
     tabDescription: 'Описание',
     tabSpecs: 'Характеристики',
@@ -94,7 +99,7 @@ const translations = {
     remove: 'Удалить',
     checkout: 'Оформить заказ',
     total: 'Итого:',
-    copyright: '© 2026 SHOP. Все права защищены.',
+    copyright: '© 2026 Tutsi Shop. Все права защищены.',
     banner1Title: 'Новые коллекции',
     banner1Text: 'Откройте для себя уникальные товары',
     banner2Title: 'Специальные предложения',
@@ -121,6 +126,7 @@ const translations = {
     checkoutWarehouse: 'Отделение Новой Почты *',
     checkoutWarehousePlaceholder: 'Введите номер или адрес отделения',
     checkoutNoCities: 'Города не найдены',
+    coloringDeliveryNotice: 'Внимание! Раскраски отправляются в тубах 120см, поэтому доставка в поштоматы невозможна',
     categoryColoring: 'РАСКРАСКИ',
     categoryColoringDesc: 'Выберите раскраски',
     categoryStickers: 'СТИКЕРЫ',
@@ -198,27 +204,19 @@ function updatePageTexts() {
   }
 }
 
-// Автоматичне визначення темної теми від пристрою
+// Ініціалізація теми - за замовчуванням світла
 function initTheme() {
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const savedTheme = localStorage.getItem('theme');
   
-  if (savedTheme === 'dark' || (savedTheme === null && prefersDark)) {
+  // Якщо є збережена тема - використовуємо її, інакше - світла (за замовчуванням)
+  if (savedTheme === 'dark') {
     document.body.classList.add('dark');
     updateThemeButton();
+  } else {
+    // За замовчуванням світла тема
+    document.body.classList.remove('dark');
+    updateThemeButton();
   }
-  
-  // Відстежуємо зміни теми пристрою
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    if (!localStorage.getItem('theme')) {
-      if (e.matches) {
-        document.body.classList.add('dark');
-      } else {
-        document.body.classList.remove('dark');
-      }
-      updateThemeButton();
-    }
-  });
 }
 
 function updateThemeButton() {
@@ -234,7 +232,7 @@ function initSearch() {
   if (!searchInput) return;
   
   // Відновлюємо значення пошуку з localStorage
-  const savedSearch = localStorage.getItem('searchQuery');
+  const savedSearch = sessionStorage.getItem('searchQuery');
   if (savedSearch) {
     searchInput.value = savedSearch;
   }
@@ -251,11 +249,11 @@ function initSearch() {
     // На головній сторінці - фільтруємо каталог при введенні
     searchInput.addEventListener('input', (e) => {
       const query = e.target.value;
-      localStorage.setItem('searchQuery', query);
+      sessionStorage.setItem('searchQuery', query);
       
       // Якщо користувач почав вводити текст, скидаємо фільтр категорій
       if (query.trim().length > 0) {
-        localStorage.removeItem('activeCategory');
+        sessionStorage.removeItem('activeCategory');
         
         // Очищаємо URL параметр category
         const url = new URL(window.location);
@@ -274,9 +272,9 @@ function initSearch() {
       if (e.key === 'Enter') {
         const query = e.target.value.trim();
         if (query.length > 0) {
-          localStorage.setItem('searchQuery', query);
+          sessionStorage.setItem('searchQuery', query);
           // Скидаємо фільтр категорій при переході
-          localStorage.removeItem('activeCategory');
+          sessionStorage.removeItem('activeCategory');
           window.location.href = 'index.html';
         }
       }
@@ -347,9 +345,9 @@ function updateCartCount() {
 
 // Функція для фільтрації за категорією
 function filterByCategory(category) {
-  // Зберігаємо категорію в localStorage
-  localStorage.setItem('activeCategory', category);
-  localStorage.removeItem('searchQuery'); // Очищаємо пошук
+  // Зберігаємо категорію в sessionStorage (скидається при закритті вкладки)
+  sessionStorage.setItem('activeCategory', category);
+  sessionStorage.removeItem('searchQuery'); // Очищаємо пошук
   
   // Очищаємо поле пошуку
   const searchInput = $('search');
@@ -376,8 +374,8 @@ function filterByCategory(category) {
 // Функція для показу всіх товарів
 function showAllProducts() {
   // Очищаємо категорію та пошук
-  localStorage.removeItem('activeCategory');
-  localStorage.removeItem('searchQuery');
+  sessionStorage.removeItem('activeCategory');
+  sessionStorage.removeItem('searchQuery');
   
   // Очищаємо поле пошуку
   const searchInput = $('search');
@@ -403,7 +401,7 @@ function showAllProducts() {
 
 // Функція для відображення блоків категорій
 function renderCategoryBlocks() {
-  const activeCategory = localStorage.getItem('activeCategory') || new URLSearchParams(window.location.search).get('category') || '';
+  const activeCategory = sessionStorage.getItem('activeCategory') || new URLSearchParams(window.location.search).get('category') || '';
   const blocks = document.querySelectorAll('.category-block');
   
   blocks.forEach(block => {
@@ -419,8 +417,8 @@ function renderCategoryBlocks() {
 
 function renderCatalog(){
   const box=$('catalog'); if(!box) return;
-  const q=localStorage.getItem('searchQuery') || $('search')?.value || '';
-  const activeCategory = localStorage.getItem('activeCategory') || new URLSearchParams(window.location.search).get('category') || '';
+  const q=sessionStorage.getItem('searchQuery') || $('search')?.value || '';
+  const activeCategory = sessionStorage.getItem('activeCategory') || new URLSearchParams(window.location.search).get('category') || '';
   
   // Нормалізуємо запит: приводимо до нижнього регістру та прибираємо зайві пробіли
   const normalizedQuery = q.toLowerCase().trim();
@@ -524,16 +522,26 @@ function renderProduct(){
             <h3>${t('delivery')}</h3>
             <div class="delivery-option">
               <span>${t('novaPoshtaBranch')}</span>
-              <span>${t('shippingToday')}</span>
+              <span>${t('shippingNextDay')}</span>
             </div>
+            ${p.id >= 1 && p.id <= 10 ? '' : `
             <div class="delivery-option">
               <span>${t('novaPoshtaPostomat')}</span>
-              <span>${t('shippingToday')}</span>
+              <span>${t('shippingNextDay')}</span>
             </div>
+            `}
             <div class="delivery-option">
               <span>${t('ukrposhta')}</span>
-              <span>${t('shippingToday')}</span>
+              <span>${t('shippingNextDay')}</span>
             </div>
+            <div class="delivery-notice" style="margin-top: 15px; padding: 12px; background: #e7f3ff; border-left: 4px solid #2196F3; border-radius: 8px; font-size: 14px; color: #0d47a1;">
+              <strong>ℹ️ ${t('shippingNotice')}</strong>
+            </div>
+            ${p.id >= 1 && p.id <= 10 ? `
+            <div class="delivery-notice" style="margin-top: 10px; padding: 12px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 8px; font-size: 14px; color: #856404;">
+              <strong>⚠️ ${t('coloringDeliveryNotice')}</strong>
+            </div>
+            ` : ''}
           </div>
         </div>
       </div>
@@ -771,6 +779,9 @@ function checkout(){
     clickOutsideHandler = null;
   }
   
+  // Перевіряємо, чи в кошику тільки розмальовки (id 1-10)
+  const hasOnlyColoring = cart.length > 0 && cart.every(id => id >= 1 && id <= 10);
+  
   // Створюємо модальне вікно з формою
   const modal = document.createElement('div');
   modal.className = 'checkout-modal';
@@ -808,7 +819,12 @@ function checkout(){
         <div class="form-group">
           <label for="novaWarehouse">${t('checkoutWarehouse')}</label>
           <input type="text" id="novaWarehouse" name="warehouse" required 
-                 placeholder="${t('checkoutWarehousePlaceholder')}">
+                 placeholder="${hasOnlyColoring ? 'Введіть номер або адресу відділення (поштомат недоступний для розмальовок)' : t('checkoutWarehousePlaceholder')}">
+          ${hasOnlyColoring ? `
+          <div class="delivery-notice" style="margin-top: 10px; padding: 12px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 8px; font-size: 14px; color: #856404;">
+            <strong>⚠️ ${t('coloringDeliveryNotice')}</strong>
+          </div>
+          ` : ''}
         </div>
         <div class="order-summary">
           <h3>${t('checkoutOrder')}</h3>
@@ -820,6 +836,10 @@ function checkout(){
         <div class="checkout-notice">
           <div class="notice-icon">📞</div>
           <p>${t('checkoutNotice')}</p>
+        </div>
+        <div class="checkout-notice" style="background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(33, 150, 243, 0.05)); border-left: 4px solid #2196F3;">
+          <div class="notice-icon">📦</div>
+          <p><strong>${t('shippingNotice')}</strong></p>
         </div>
         <button type="submit" class="submit-order-btn">
           <span>${t('checkoutSubmit')}</span>
@@ -1056,7 +1076,25 @@ function renderAll(){
   updatePageTexts();
 }
 
+// Очищаємо фільтри при закритті вкладки
+window.addEventListener('beforeunload', () => {
+  sessionStorage.removeItem('activeCategory');
+  sessionStorage.removeItem('searchQuery');
+});
+
 document.addEventListener('DOMContentLoaded',()=>{
+  // Очищаємо фільтри при завантаженні сторінки
+  // Це гарантує, що після закриття вкладки фільтри скинуться
+  sessionStorage.removeItem('activeCategory');
+  sessionStorage.removeItem('searchQuery');
+  
+  // Очищаємо URL параметри категорії
+  const url = new URL(window.location);
+  if (url.searchParams.has('category')) {
+    url.searchParams.delete('category');
+    window.history.replaceState({}, '', url);
+  }
+  
   initTheme();
   initSearch();
   renderAll();
