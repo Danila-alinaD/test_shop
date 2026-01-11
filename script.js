@@ -711,7 +711,23 @@ function removeFromCart(id) {
   }
 }
 
-// Функція пошуку міст/сел
+// ⚙️ НАЛАШТУВАННЯ API НОВОЇ ПОШТИ
+// Отримайте API ключ на https://devcenter.novaposhta.ua/
+const NOVA_POSHTA_API_KEY = '57059f80ce7b891a880e70cbe92ee85b'; // Замініть на ваш API ключ
+const NOVA_POSHTA_API_URL = 'https://api.novaposhta.ua/v2.0/json/';
+
+// Змінна для зберігання обраного міста (CityRef)
+let selectedCityRef = '';
+// Змінна для зберігання назви обраного міста
+let selectedCityName = '';
+// Змінна для зберігання області обраного міста
+let selectedRegion = null;
+// Змінна для зберігання завантажених відділень
+let loadedWarehouses = [];
+// Змінна для зберігання всіх відділень з файлу області (кеш)
+let allWarehousesFromFile = null;
+
+// Функція пошуку міст/сел через API Нової Пошти
 let citiesSearchTimeout;
 function searchCities(query) {
   const dropdown = document.getElementById('citiesDropdown');
@@ -724,33 +740,98 @@ function searchCities(query) {
     return;
   }
   
+  // Перевірка API ключа
+  if (NOVA_POSHTA_API_KEY === 'YOUR_NOVA_POSHTA_API_KEY') {
+    // Якщо API ключ не налаштований, використовуємо старий спосіб
+    clearTimeout(citiesSearchTimeout);
+    citiesSearchTimeout = setTimeout(() => {
+      if (dropdown && typeof citiesList !== 'undefined') {
+        const normalizedQuery = query.toLowerCase().trim();
+        const filteredCities = citiesList.filter(city => 
+          city.name.toLowerCase().includes(normalizedQuery) ||
+          city.region.toLowerCase().includes(normalizedQuery)
+        );
+        
+        if (filteredCities.length === 0) {
+          dropdown.innerHTML = `<div class="dropdown-empty">${t('checkoutNoCities')}</div>`;
+        } else {
+          dropdown.innerHTML = filteredCities.slice(0, 10).map(city => {
+            const cityName = city.name.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            const cityRegion = city.region.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            return `<div class="dropdown-item" onclick="selectCity('${cityName}', '${cityRegion}')">
+              <div class="city-name">${city.name}</div>
+              <div class="city-region">${city.region}</div>
+            </div>`;
+          }).join('');
+        }
+        dropdown.classList.add('show');
+      }
+    }, 200);
+    return;
+  }
+  
   clearTimeout(citiesSearchTimeout);
   citiesSearchTimeout = setTimeout(() => {
     if (dropdown) {
-      const normalizedQuery = query.toLowerCase().trim();
-      const filteredCities = citiesList.filter(city => 
-        city.name.toLowerCase().includes(normalizedQuery) ||
-        city.region.toLowerCase().includes(normalizedQuery)
-      );
-      
-      if (filteredCities.length === 0) {
-        dropdown.innerHTML = `<div class="dropdown-empty">${t('checkoutNoCities')}</div>`;
-      } else {
-        dropdown.innerHTML = filteredCities.slice(0, 10).map(city => {
-          const cityName = city.name.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-          const cityRegion = city.region.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-          return `<div class="dropdown-item" onclick="selectCity('${cityName}', '${cityRegion}')">
-            <div class="city-name">${city.name}</div>
-            <div class="city-region">${city.region}</div>
-          </div>`;
-        }).join('');
-      }
+      dropdown.innerHTML = '<div class="dropdown-empty">Пошук...</div>';
       dropdown.classList.add('show');
+      
+      // Запит до API Нової Пошти
+      fetch(NOVA_POSHTA_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          apiKey: NOVA_POSHTA_API_KEY,
+          modelName: 'Address',
+          calledMethod: 'searchSettlements',
+          methodProperties: {
+            CityName: query,
+            Limit: 20
+          }
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('API response (cities):', data);
+        if (data.success && data.data && data.data.length > 0) {
+          // API повертає масив об'єктів, де кожен об'єкт містить Addresses
+          let allCities = [];
+          data.data.forEach(item => {
+            if (item.Addresses && Array.isArray(item.Addresses)) {
+              allCities = allCities.concat(item.Addresses);
+            }
+          });
+          
+          if (allCities.length === 0) {
+            dropdown.innerHTML = `<div class="dropdown-empty">${t('checkoutNoCities')}</div>`;
+          } else {
+            dropdown.innerHTML = allCities.slice(0, 20).map(city => {
+              const cityName = city.MainDescription.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+              const cityRegion = city.Area || city.RegionDescription || '';
+              // Використовуємо DeliveryCity як CityRef для getWarehouses
+              // Якщо DeliveryCity порожній, використовуємо SettlementRef або Ref
+              const cityRef = city.DeliveryCity || city.SettlementRef || city.Ref;
+              return `<div class="dropdown-item" onclick="selectCityFromAPI('${cityName}', '${cityRegion}', '${cityRef}')">
+                <div class="city-name">${city.MainDescription}</div>
+                ${cityRegion ? `<div class="city-region">${cityRegion}</div>` : ''}
+              </div>`;
+            }).join('');
+          }
+        } else {
+          dropdown.innerHTML = `<div class="dropdown-empty">${t('checkoutNoCities')}</div>`;
+        }
+      })
+      .catch(error => {
+        console.error('Помилка пошуку міст:', error);
+        dropdown.innerHTML = `<div class="dropdown-empty">Помилка пошуку. Спробуйте ще раз.</div>`;
+      });
     }
-  }, 200);
+  }, 300);
 }
 
-// Функція вибору міста
+// Функція вибору міста (старий спосіб - коли API не налаштовано)
 function selectCity(cityName, cityRegion) {
   const cityInput = document.getElementById('novaCity');
   const cityRegionInput = document.getElementById('cityRegion');
@@ -758,9 +839,411 @@ function selectCity(cityName, cityRegion) {
   
   if (cityInput) cityInput.value = cityName;
   if (cityRegionInput) cityRegionInput.value = cityRegion;
+  selectedCityRef = ''; // При старому методі CityRef немає
   if (dropdown) {
     dropdown.classList.remove('show');
     dropdown.innerHTML = '';
+  }
+  
+  // Очищаємо відділення
+  const warehouseInput = document.getElementById('novaWarehouse');
+  if (warehouseInput) warehouseInput.value = '';
+  const warehousesDropdown = document.getElementById('warehousesDropdown');
+  if (warehousesDropdown) {
+    warehousesDropdown.classList.remove('show');
+    warehousesDropdown.innerHTML = '';
+  }
+  loadedWarehouses = []; // Очищаємо збережений список
+}
+
+// Функція визначення назви області з поля Area або RegionDescription
+function getRegionName(cityRegion) {
+  if (!cityRegion) return null;
+  
+  // Прибираємо слово "область" та перетворюємо на нижній регістр
+  let regionName = cityRegion.replace(/\s*область\s*/i, '').replace(/\s*обл\.?\s*/i, '').trim().toLowerCase();
+  
+  // Мапінг назв областей
+  const regionMap = {
+    'вінниц': 'вінницька',
+    'волин': 'волинська',
+    'дніпро': 'дніпропетровська',
+    'дніпропетров': 'дніпропетровська',
+    'донецьк': 'донецька',
+    'житомир': 'житомирська',
+    'закарпат': 'закарпатська',
+    'запоріж': 'запорізька',
+    'запорізьк': 'запорізька',
+    'івано-франківськ': 'івано-франківська',
+    'івано-франків': 'івано-франківська',
+    'київськ': 'київська',
+    'київ': 'київська',
+    'кіровоград': 'кіровоградська',
+    'луганськ': 'луганська',
+    'львівськ': 'львівська',
+    'львів': 'львівська',
+    'миколаїв': 'миколаївська',
+    'одеськ': 'одеська',
+    'одеса': 'одеська',
+    'полтавськ': 'полтавська',
+    'полтава': 'полтавська',
+    'рівненськ': 'рівненська',
+    'рівне': 'рівненська',
+    'сумськ': 'сумська',
+    'суми': 'сумська',
+    'тернопільськ': 'тернопільська',
+    'тернопіль': 'тернопільська',
+    'харківськ': 'харківська',
+    'харків': 'харківська',
+    'херсонськ': 'херсонська',
+    'херсон': 'херсонська',
+    'хмельницьк': 'хмельницька',
+    'хмельниць': 'хмельницька',
+    'черкаськ': 'черкаська',
+    'черкаси': 'черкаська',
+    'чернівецьк': 'чернівецька',
+    'чернівці': 'чернівецька',
+    'чернігівськ': 'чернігівська',
+    'чернігів': 'чернігівська'
+  };
+  
+  // Шукаємо співпадіння
+  for (const [key, value] of Object.entries(regionMap)) {
+    if (regionName.includes(key) || key.includes(regionName)) {
+      return value;
+    }
+  }
+  
+  return regionName;
+}
+
+// Функція вибору міста з API
+function selectCityFromAPI(cityName, cityRegion, cityRef) {
+  const cityInput = document.getElementById('novaCity');
+  const cityRegionInput = document.getElementById('cityRegion');
+  const dropdown = document.getElementById('citiesDropdown');
+  
+  console.log('Вибрано місто:', cityName, 'Область:', cityRegion, 'CityRef:', cityRef);
+  
+  if (cityInput) cityInput.value = cityName;
+  if (cityRegionInput) cityRegionInput.value = cityRegion;
+  selectedCityRef = cityRef;
+  selectedCityName = cityName;
+  
+  // Визначаємо область
+  selectedRegion = getRegionName(cityRegion);
+  console.log('Визначена область:', selectedRegion);
+  
+  if (dropdown) {
+    dropdown.classList.remove('show');
+    dropdown.innerHTML = '';
+  }
+  
+  // Завантажуємо відділення для обраного міста/села
+  loadWarehouses(cityRef, cityName);
+}
+
+// Функція отримання назви області з CityRef
+function getRegionFromCityRef(cityRef, cityName) {
+  // Треба спробувати отримати область з API або зберегти при виборі міста
+  // Поки що спробуємо визначити по назві міста
+  if (!cityName) return null;
+  
+  // Області України та їх обласні центри
+  const regions = {
+    'вінницька': 'Вінниця',
+    'волинська': 'Луцьк',
+    'дніпропетровська': 'Дніпро',
+    'донецька': 'Донецьк',
+    'житомирська': 'Житомир',
+    'закарпатська': 'Ужгород',
+    'запорізька': 'Запоріжжя',
+    'івано-франківська': 'Івано-Франківськ',
+    'київська': 'Київ',
+    'кіровоградська': 'Кропивницький',
+    'луганська': 'Луганськ',
+    'львівська': 'Львів',
+    'миколаївська': 'Миколаїв',
+    'одеська': 'Одеса',
+    'полтавська': 'Полтава',
+    'рівненська': 'Рівне',
+    'сумська': 'Суми',
+    'тернопільська': 'Тернопіль',
+    'харківська': 'Харків',
+    'херсонська': 'Херсон',
+    'хмельницька': 'Хмельницький',
+    'черкаська': 'Черкаси',
+    'чернівецька': 'Чернівці',
+    'чернігівська': 'Чернігів'
+  };
+  
+  // Шукаємо область по назві міста
+  const cityLower = cityName.toLowerCase();
+  for (const [region, center] of Object.entries(regions)) {
+    if (cityLower.includes(center.toLowerCase()) || cityLower.includes(region)) {
+      return region;
+    }
+  }
+  
+  return null;
+}
+
+// Функція завантаження відділень з файлу області
+function loadWarehousesFromRegion(regionName) {
+  return new Promise((resolve, reject) => {
+    // Кешуємо завантажені області
+    if (allWarehousesFromFile && allWarehousesFromFile.region === regionName) {
+      console.log(`Файл області ${regionName} вже завантажений, використовуємо кеш`);
+      resolve(allWarehousesFromFile.data);
+      return;
+    }
+    
+    if (!regionName) {
+      reject(new Error('Назва області не вказана'));
+      return;
+    }
+    
+    // Формуємо назву файлу (переконуємося, що в нижньому регістрі)
+    const filename = `city/warehouses-${regionName.toLowerCase()}.json`;
+    console.log(`Завантажуємо файл області: ${filename}`);
+    console.log(`Перевіряємо наявність файлу для області: ${regionName}`);
+    
+    // Завантажуємо файл області
+    fetch(filename)
+      .then(response => {
+        console.log('Response status:', response.status, response.statusText);
+        console.log('Response URL:', response.url);
+        if (!response.ok) {
+          console.error(`Файл не знайдено: ${filename}`);
+          console.error('Можливо, сторінка відкрита через file:// протокол. Спробуйте запустити через локальний сервер (python3 -m http.server)');
+          throw new Error(`HTTP error! status: ${response.status} ${response.statusText}. Файл: ${filename}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (!Array.isArray(data)) {
+          throw new Error('Файл не містить масив відділень');
+        }
+        // Кешуємо з інформацією про область
+        allWarehousesFromFile = { region: regionName, data: data };
+        console.log(`✅ Завантажено ${data.length} відділень з файлу ${filename}`);
+        resolve(data);
+      })
+      .catch(error => {
+        console.error(`❌ Помилка завантаження файлу ${filename}:`, error);
+        reject(error);
+      });
+  });
+}
+
+// Функція завантаження відділень для міста з локального файлу
+function loadWarehouses(cityRef, cityName) {
+  const warehousesDropdown = document.getElementById('warehousesDropdown');
+  const warehouseInput = document.getElementById('novaWarehouse');
+  
+  if (!warehousesDropdown || !warehouseInput) return;
+  
+  if (!cityRef) {
+    console.error('CityRef не вказано');
+    warehousesDropdown.innerHTML = '<div class="dropdown-empty">Помилка: не вказано місто</div>';
+    return;
+  }
+  
+  warehouseInput.value = '';
+  warehousesDropdown.innerHTML = '<div class="dropdown-empty">Завантаження відділень...</div>';
+  warehousesDropdown.classList.add('show');
+  
+  // Завантажуємо відділення через API
+  fetch(NOVA_POSHTA_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      apiKey: NOVA_POSHTA_API_KEY,
+      modelName: 'Address',
+      calledMethod: 'getWarehouses',
+      methodProperties: {
+        CityRef: cityRef,
+        Page: '1',
+        Limit: '1000'
+      }
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log('API response (warehouses):', data);
+    if (data.success && data.data && Array.isArray(data.data)) {
+      let warehouses = data.data;
+      
+      console.log(`Завантажено ${warehouses.length} відділень для CityRef: ${cityRef}`);
+      
+      // Показуємо всі відділення та поштомати без фільтрації
+      loadedWarehouses = warehouses;
+      
+      if (warehouses.length === 0) {
+        warehousesDropdown.innerHTML = `<div class="dropdown-empty">Відділення не знайдено. Можна ввести номер відділення вручну.</div>`;
+        warehousesDropdown.classList.remove('show');
+      } else {
+        // Сортуємо відділення за номером для зручності
+        warehouses.sort((a, b) => {
+          const numA = parseInt(a.Number) || 0;
+          const numB = parseInt(b.Number) || 0;
+          return numA - numB;
+        });
+        
+        // Оновлюємо збережений список
+        loadedWarehouses = warehouses;
+        
+        // Показуємо всі відділення
+        displayWarehouses(warehouses);
+        
+        // Додаємо інформацію про кількість відділень
+        console.log(`Завантажено ${warehouses.length} відділень`);
+      }
+    } else {
+      warehousesDropdown.innerHTML = `<div class="dropdown-empty">Помилка: ${data.errors?.[0] || 'Невідома помилка'}</div>`;
+      warehousesDropdown.classList.remove('show');
+    }
+  })
+  .catch(error => {
+    console.error('Помилка завантаження відділень:', error);
+    warehousesDropdown.innerHTML = `<div class="dropdown-empty">Помилка завантаження відділень. Спробуйте ще раз.</div>`;
+    warehousesDropdown.classList.remove('show');
+  });
+}
+
+// Функція вибору відділення
+function selectWarehouse(warehouseName) {
+  const warehouseInput = document.getElementById('novaWarehouse');
+  const warehousesDropdown = document.getElementById('warehousesDropdown');
+  
+  if (warehouseInput) warehouseInput.value = warehouseName;
+  if (warehousesDropdown) {
+    warehousesDropdown.classList.remove('show');
+  }
+}
+
+// Функція пошуку відділень за номером або назвою
+let warehousesSearchTimeout;
+function searchWarehouses(query) {
+  const warehousesDropdown = document.getElementById('warehousesDropdown');
+  const warehouseInput = document.getElementById('novaWarehouse');
+  
+  if (!warehousesDropdown || !warehouseInput) return;
+  
+  // Якщо немає завантажених відділень, спробуємо завантажити
+  if (loadedWarehouses.length === 0 && selectedCityRef) {
+    loadWarehouses(selectedCityRef, '');
+    return;
+  }
+  
+  // Якщо немає завантажених відділень, дозволяємо ручний ввід
+  if (loadedWarehouses.length === 0) {
+    warehousesDropdown.classList.remove('show');
+    return;
+  }
+  
+  if (!query || query.length < 1) {
+    // Показуємо всі відділення, якщо поле порожнє
+    displayWarehouses(loadedWarehouses);
+    return;
+  }
+  
+  clearTimeout(warehousesSearchTimeout);
+  
+  // Якщо поле порожнє або дуже коротке, показуємо всі відділення
+  if (query.length < 1) {
+    displayWarehouses(loadedWarehouses);
+    return;
+  }
+  
+  // Для швидшого відгуку - зменшуємо затримку до 100мс
+  warehousesSearchTimeout = setTimeout(() => {
+    const normalizedQuery = query.toLowerCase().trim();
+    
+    // Фільтруємо відділення за номером або назвою
+    const filteredWarehouses = loadedWarehouses.filter(warehouse => {
+      const number = (warehouse.Number || '').toString();
+      const description = (warehouse.Description || '').toLowerCase();
+      // Пошук початок з введеного тексту (для швидшого пошуку за номером)
+      return number.startsWith(normalizedQuery) || 
+             number.includes(normalizedQuery) || 
+             description.includes(normalizedQuery);
+    });
+    
+    if (filteredWarehouses.length > 0) {
+      displayWarehouses(filteredWarehouses);
+    } else {
+      // Якщо не знайдено - дозволяємо ручний ввід (приховуємо dropdown)
+      warehousesDropdown.classList.remove('show');
+    }
+  }, 100);
+}
+
+// Функція відображення відділень
+function displayWarehouses(warehouses) {
+  const warehousesDropdown = document.getElementById('warehousesDropdown');
+  if (!warehousesDropdown) return;
+  
+  if (warehouses.length === 0) {
+    warehousesDropdown.innerHTML = `<div class="dropdown-empty">Відділення не знайдено</div>`;
+    warehousesDropdown.classList.remove('show');
+  } else {
+    // Обмежуємо відображення до 50 найрелевантніших результатів для швидкості
+    const displayList = warehouses.slice(0, 50);
+    
+    warehousesDropdown.innerHTML = displayList.map(warehouse => {
+      const warehouseName = warehouse.Description.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+      const warehouseNumber = warehouse.Number || '';
+      return `<div class="dropdown-item" onclick="selectWarehouse('${warehouseName}')">
+        <div class="city-name">${warehouse.Description}</div>
+        ${warehouseNumber ? `<div class="city-region">№${warehouseNumber}</div>` : ''}
+      </div>`;
+    }).join('');
+    
+    // Якщо результатів більше 50, додаємо підказку
+    if (warehouses.length > 50) {
+      warehousesDropdown.innerHTML += `<div class="dropdown-empty" style="font-size: 0.85em; color: #666; padding: 8px;">
+        Показано 50 з ${warehouses.length} відділень. Уточніть пошук для більш точних результатів.
+      </div>`;
+    }
+    
+    warehousesDropdown.classList.add('show');
+  }
+}
+
+// Функція відкриття/закриття списку відділень
+function toggleWarehousesDropdown() {
+  const cityInput = document.getElementById('novaCity');
+  if (!cityInput || !cityInput.value) {
+    alert('Спочатку оберіть місто');
+    return;
+  }
+  
+  if (!selectedCityRef) {
+    alert('Спочатку оберіть місто зі списку');
+    return;
+  }
+  
+  const warehousesDropdown = document.getElementById('warehousesDropdown');
+  if (!warehousesDropdown) return;
+  
+  if (warehousesDropdown.classList.contains('show')) {
+    warehousesDropdown.classList.remove('show');
+  } else {
+    // Завантажуємо відділення, якщо ще не завантажені
+    if (loadedWarehouses.length === 0) {
+      loadWarehouses(selectedCityRef, '');
+    } else {
+      // Показуємо всі відділення або відфільтровані
+      const warehouseInput = document.getElementById('novaWarehouse');
+      if (warehouseInput && warehouseInput.value) {
+        searchWarehouses(warehouseInput.value);
+      } else {
+        displayWarehouses(loadedWarehouses);
+      }
+    }
   }
 }
 
@@ -818,8 +1301,13 @@ function checkout(){
         </div>
         <div class="form-group">
           <label for="novaWarehouse">${t('checkoutWarehouse')}</label>
-          <input type="text" id="novaWarehouse" name="warehouse" required 
-                 placeholder="${hasOnlyColoring ? 'Введіть номер або адресу відділення (поштомат недоступний для розмальовок)' : t('checkoutWarehousePlaceholder')}">
+          <div class="city-select-wrapper">
+            <input type="text" id="novaWarehouse" name="warehouse" required 
+                   placeholder="Введіть номер відділення (наприклад: №1) або адресу"
+                   oninput="searchWarehouses(this.value)"
+                   onclick="toggleWarehousesDropdown()">
+            <div id="warehousesDropdown" class="dropdown-list"></div>
+          </div>
           ${hasOnlyColoring ? `
           <div class="delivery-notice" style="margin-top: 10px; padding: 12px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 8px; font-size: 14px; color: #856404;">
             <strong>⚠️ ${t('coloringDeliveryNotice')}</strong>
@@ -904,12 +1392,21 @@ function checkout(){
     
     const dropdown = document.getElementById('citiesDropdown');
     const cityWrapper = document.querySelector('.city-select-wrapper');
+    const warehousesDropdown = document.getElementById('warehousesDropdown');
+    const warehouseWrapper = document.querySelectorAll('.city-select-wrapper')[1];
     
-    // Перевіряємо, чи клік був поза обгорткою з полем вводу та списком
+    // Перевіряємо, чи клік був поза обгорткою з полем вводу та списком міст
     if (dropdown && dropdown.classList.contains('show') && cityWrapper) {
       if (!cityWrapper.contains(e.target)) {
         dropdown.classList.remove('show');
         dropdown.innerHTML = '';
+      }
+    }
+    
+    // Перевіряємо, чи клік був поза обгорткою з полем вводу та списком відділень
+    if (warehousesDropdown && warehousesDropdown.classList.contains('show') && warehouseWrapper) {
+      if (!warehouseWrapper.contains(e.target)) {
+        warehousesDropdown.classList.remove('show');
       }
     }
   };
