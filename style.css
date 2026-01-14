@@ -886,6 +886,73 @@ body.dark .top {
   box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
 }
 
+.product-quantity-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.quantity-label {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--card);
+}
+
+.quantity-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  user-select: none;
+}
+
+.quantity-btn:hover {
+  background: var(--accent-hover);
+  transform: scale(1.05);
+}
+
+.quantity-btn:active {
+  transform: scale(0.95);
+}
+
+.quantity-input {
+  width: 60px;
+  height: 40px;
+  border: none;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--card);
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 .product-delivery-info {
   background: var(--card);
   padding: 20px;
@@ -1396,6 +1463,29 @@ body.dark .checkout-modal {
   
   .product-nav-btn.next {
     right: 10px;
+  }
+  
+  .product-quantity-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .quantity-selector {
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  .quantity-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+  
+  .quantity-input {
+    width: 50px;
+    height: 36px;
+    font-size: 16px;
   }
   
   .product-tabs {

@@ -513,6 +513,15 @@ function renderProduct(){
             <div class="product-price">${p[lang].price} ₴</div>
           </div>
           
+          <div class="product-quantity-section">
+            <label class="quantity-label">${t('quantity')}:</label>
+            <div class="quantity-selector">
+              <button class="quantity-btn minus" onclick="changeQuantity(-1, ${p.id})">−</button>
+              <input type="number" id="productQuantity_${p.id}" class="quantity-input" value="1" min="1" max="99" onchange="validateQuantity(${p.id})">
+              <button class="quantity-btn plus" onclick="changeQuantity(1, ${p.id})">+</button>
+            </div>
+          </div>
+          
           <button class="product-buy-btn" onclick="add(${p.id})">
             <span>🛒</span>
             <span>${t('buy')}</span>
@@ -667,8 +676,50 @@ function renderCart(){
   updateCartCount();
 }
 
+function showQuantitySelector(productId) {
+  const quantitySection = document.getElementById(`quantitySection_${productId}`);
+  const buyBtn = document.getElementById(`buyBtn_${productId}`);
+  
+  if (quantitySection && buyBtn) {
+    quantitySection.style.display = 'flex';
+    buyBtn.style.display = 'none';
+  }
+}
+
+function changeQuantity(delta, productId) {
+  const input = document.getElementById(`productQuantity_${productId}`);
+  if (!input) return;
+  
+  let currentValue = parseInt(input.value) || 1;
+  let newValue = currentValue + delta;
+  
+  // Обмежуємо мінімум 1 і максимум 99
+  if (newValue < 1) newValue = 1;
+  if (newValue > 99) newValue = 99;
+  
+  input.value = newValue;
+}
+
+function validateQuantity(productId) {
+  const input = document.getElementById(`productQuantity_${productId}`);
+  if (!input) return;
+  
+  let value = parseInt(input.value) || 1;
+  if (value < 1) value = 1;
+  if (value > 99) value = 99;
+  input.value = value;
+}
+
 function add(id){
-  cart.push(id);
+  // Отримуємо кількість з інпуту
+  const quantityInput = document.getElementById(`productQuantity_${id}`);
+  const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
+  
+  // Додаємо товар вказану кількість разів
+  for (let i = 0; i < quantity; i++) {
+    cart.push(id);
+  }
+  
   localStorage.setItem('cart',JSON.stringify(cart));
   
   // Оновлюємо лічильник одразу
