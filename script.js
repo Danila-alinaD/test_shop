@@ -38,12 +38,12 @@ const translations = {
     checkout: 'Оформити замовлення',
     total: 'Загалом:',
     copyright: '© 2026 Tutsi Shop. Всі права захищені.',
-    banner1Title: 'Нові колекції',
-    banner1Text: 'Відкрийте для себе унікальні товари',
+    banner1Title: 'Спеціальні пропозиції',
+    banner1Text: 'Знижки на замовлення від двох розмальовок',
     banner2Title: 'Спеціальні пропозиції',
-    banner2Text: 'Знижки до 50% на обрані товари',
-    banner3Title: 'Якість та стиль',
-    banner3Text: 'Тільки найкраще для вас',
+    banner2Text: 'Знижки на замовленнявід двох розмальовок',
+    banner3Title: 'Спеціальні пропозиції',
+    banner3Text: 'Знижки на замовлення від двох розмальовок',
     checkoutTitle: 'Оформлення замовлення',
     checkoutSubtitle: 'Заповніть форму і ми передзвонимо вам найближчим часом',
     checkoutName: 'Ім\'я *',
@@ -54,6 +54,7 @@ const translations = {
     checkoutOrder: 'Ваше замовлення:',
     checkoutNotice: 'Після оформлення заявки вам передзвонять для підтвердження замовлення',
     checkoutSubmit: 'Відправити заявку',
+    checkoutPayWithLiqpay: 'Оплатити через LiqPay',
     checkoutSending: 'Відправка...',
     checkoutSuccess: '✅ Заявку успішно відправлено! Ми передзвонимо вам найближчим часом.',
     checkoutError: 'Помилка відправки. Спробуйте ще раз або перевірте налаштування бота.',
@@ -100,12 +101,12 @@ const translations = {
     checkout: 'Оформить заказ',
     total: 'Итого:',
     copyright: '© 2026 Tutsi Shop. Все права защищены.',
-    banner1Title: 'Новые коллекции',
-    banner1Text: 'Откройте для себя уникальные товары',
+    banner1Title: 'Специальные предложения',
+    banner1Text: 'Скидки на заказ от двух раскрасок',
     banner2Title: 'Специальные предложения',
-    banner2Text: 'Скидки до 50% на выбранные товары',
-    banner3Title: 'Качество и стиль',
-    banner3Text: 'Только лучшее для вас',
+    banner2Text: 'Скидки на заказ от двух раскрасок',
+    banner3Title: 'Специальные предложения',
+    banner3Text: 'Скидки на заказ от двух раскрасок',
     checkoutTitle: 'Оформление заказа',
     checkoutSubtitle: 'Заполните форму и мы перезвоним вам в ближайшее время',
     checkoutName: 'Имя *',
@@ -116,6 +117,7 @@ const translations = {
     checkoutOrder: 'Ваш заказ:',
     checkoutNotice: 'После оформления заявки вам перезвонят для подтверждения заказа',
     checkoutSubmit: 'Отправить заявку',
+    checkoutPayWithLiqpay: 'Оплатить через LiqPay',
     checkoutSending: 'Отправка...',
     checkoutSuccess: '✅ Заявка успешно отправлена! Мы перезвоним вам в ближайшее время.',
     checkoutError: 'Ошибка отправки. Попробуйте еще раз или проверьте настройки бота.',
@@ -510,14 +512,21 @@ function renderProduct(){
           </div>
           
           <div class="product-price-section">
-            <div class="product-price">${p[lang].price} ₴</div>
+            <div class="product-price" id="productPrice_${p.id}">${p.id >= 1 && p.id <= 10 ? '300' : p[lang].price} ₴</div>
+            ${p.id >= 1 && p.id <= 10 ? `<div class="product-price-info" id="productPricePerUnit_${p.id}" style="font-size: 14px; color: var(--text); opacity: 0.7; margin-top: 5px; display: none;"></div>` : ''}
+            ${p.id >= 1 && p.id <= 10 ? `<div class="product-price-breakdown" style="font-size: 13px; color: var(--text); opacity: 0.6; margin-top: 10px; line-height: 1.6;">
+              <div>1 шт - 300 ₴</div>
+              <div>2 шт - 560 ₴</div>
+              <div>3 шт - 810 ₴</div>
+              <div>від 4 шт - 250 ₴ за шт</div>
+            </div>` : ''}
           </div>
           
           <div class="product-quantity-section">
             <label class="quantity-label">${t('quantity')}:</label>
             <div class="quantity-selector">
               <button class="quantity-btn minus" onclick="changeQuantity(-1, ${p.id})">−</button>
-              <input type="number" id="productQuantity_${p.id}" class="quantity-input" value="1" min="1" max="99" onchange="validateQuantity(${p.id})">
+              <input type="number" id="productQuantity_${p.id}" class="quantity-input" value="1" min="1" max="99" onchange="validateQuantity(${p.id})" oninput="updateProductPriceDisplay(${p.id})">
               <button class="quantity-btn plus" onclick="changeQuantity(1, ${p.id})">+</button>
             </div>
           </div>
@@ -590,6 +599,11 @@ function renderProduct(){
         </div>
       </div>
     </div>`;
+  
+  // Ініціалізуємо відображення ціни для розмальовок
+  if (p.id >= 1 && p.id <= 10) {
+    setTimeout(() => updateProductPriceDisplay(p.id), 0);
+  }
 }
 
 function changeProductImage(direction, totalImages) {
@@ -654,7 +668,8 @@ function renderCart(){
   box.innerHTML = Object.keys(cartItems).map(id => {
     const p = products.find(x => x.id == id);
     const quantity = cartItems[id];
-    const totalPrice = p[lang].price * quantity;
+    const totalPrice = getProductPrice(id, quantity);
+    const unitPrice = id >= 1 && id <= 10 ? (quantity >= 4 ? 250 : (totalPrice / quantity)) : p[lang].price;
     return `
       <div class="cart-item">
         <div class="cart-item-content">
@@ -662,8 +677,12 @@ function renderCart(){
           <div class="cart-item-info">
             <h3>${p[lang].name}</h3>
             <div class="cart-item-price">
-              <div class="price">${p[lang].price} ₴</div>
-              <span class="quantity">× ${quantity}</span>
+              <div class="price">${unitPrice.toFixed(0)} ₴${id >= 1 && id <= 10 && quantity >= 4 ? ' за шт' : ''}</div>
+              <div class="cart-quantity-selector">
+                <button class="cart-quantity-btn minus" onclick="changeCartQuantity(${id}, -1)">−</button>
+                <span class="cart-quantity-value">${quantity}</span>
+                <button class="cart-quantity-btn plus" onclick="changeCartQuantity(${id}, 1)">+</button>
+              </div>
               <strong class="total-price">= ${totalPrice} ₴</strong>
             </div>
           </div>
@@ -686,6 +705,65 @@ function showQuantitySelector(productId) {
   }
 }
 
+// Функція для розрахунку ціни розмальовок
+function getColoringPrice(quantity) {
+  if (quantity === 1) return 300;
+  if (quantity === 2) return 560;
+  if (quantity === 3) return 810;
+  if (quantity >= 4) return quantity * 250;
+  return 300;
+}
+
+// Функція для отримання ціни товару з урахуванням кількості (для розмальовок)
+function getProductPrice(productId, quantity) {
+  const p = products.find(x => x.id == productId);
+  if (!p) return 0;
+  
+  // Розмальовки (id 1-10) мають спеціальну цінову політику
+  if (productId >= 1 && productId <= 10) {
+    return getColoringPrice(quantity);
+  }
+  
+  // Для інших товарів - стандартна ціна
+  return p[lang].price * quantity;
+}
+
+// Оновлює відображення ціни на сторінці товару
+function updateProductPriceDisplay(productId) {
+  const input = document.getElementById(`productQuantity_${productId}`);
+  const priceElement = document.getElementById(`productPrice_${productId}`);
+  const pricePerUnitElement = document.getElementById(`productPricePerUnit_${productId}`);
+  
+  if (!input || !priceElement) return;
+  
+  const quantity = parseInt(input.value) || 1;
+  const p = products.find(x => x.id == productId);
+  if (!p) return;
+  
+  // Якщо це розмальовка, використовуємо спеціальну ціну
+  if (productId >= 1 && productId <= 10) {
+    const totalPrice = getColoringPrice(quantity);
+    priceElement.textContent = `${totalPrice} ₴`;
+    
+    // Додаємо інформацію про ціну за штуку, якщо є елемент
+    if (pricePerUnitElement) {
+      if (quantity >= 4) {
+        pricePerUnitElement.textContent = `(250 ₴ за шт)`;
+        pricePerUnitElement.style.display = 'block';
+      } else {
+        pricePerUnitElement.style.display = 'none';
+      }
+    }
+  } else {
+    // Для інших товарів - стандартна логіка
+    const totalPrice = p[lang].price * quantity;
+    priceElement.textContent = `${totalPrice} ₴`;
+    if (pricePerUnitElement) {
+      pricePerUnitElement.style.display = 'none';
+    }
+  }
+}
+
 function changeQuantity(delta, productId) {
   const input = document.getElementById(`productQuantity_${productId}`);
   if (!input) return;
@@ -698,6 +776,9 @@ function changeQuantity(delta, productId) {
   if (newValue > 99) newValue = 99;
   
   input.value = newValue;
+  
+  // Оновлюємо відображення ціни
+  updateProductPriceDisplay(productId);
 }
 
 function validateQuantity(productId) {
@@ -708,6 +789,9 @@ function validateQuantity(productId) {
   if (value < 1) value = 1;
   if (value > 99) value = 99;
   input.value = value;
+  
+  // Оновлюємо відображення ціни
+  updateProductPriceDisplay(productId);
 }
 
 function add(id){
@@ -738,27 +822,54 @@ function add(id){
   }
 }
 
-function removeFromCart(id) {
-  // Видаляємо перший знайдений елемент з кошика
-  const index = cart.indexOf(id);
-  if (index > -1) {
-    cart.splice(index, 1);
-    localStorage.setItem('cart', JSON.stringify(cart));
-    
-    // Оновлюємо лічильник одразу
-    updateCartCount();
-    
-    renderCart();
-    renderCatalog();
-    
-    // Анімація видалення
-    const cartCount = $('cartCount');
-    if (cartCount) {
-      cartCount.style.transform = 'scale(0.8)';
-      setTimeout(() => {
-        cartCount.style.transform = 'scale(1)';
-      }, 200);
+function changeCartQuantity(id, delta) {
+  // Якщо зменшуємо і кількість = 1, видаляємо товар
+  if (delta < 0) {
+    const index = cart.indexOf(id);
+    if (index > -1) {
+      cart.splice(index, 1);
     }
+  } else {
+    // Додаємо товар
+    cart.push(id);
+  }
+  
+  localStorage.setItem('cart', JSON.stringify(cart));
+  
+  // Оновлюємо лічильник одразу
+  updateCartCount();
+  
+  renderCart();
+  renderCatalog();
+  
+  // Анімація зміни
+  const cartCount = $('cartCount');
+  if (cartCount) {
+    cartCount.style.transform = 'scale(1.2)';
+    setTimeout(() => {
+      cartCount.style.transform = 'scale(1)';
+    }, 200);
+  }
+}
+
+function removeFromCart(id) {
+  // Видаляємо всі екземпляри товару з кошика
+  cart = cart.filter(itemId => itemId !== id);
+  localStorage.setItem('cart', JSON.stringify(cart));
+  
+  // Оновлюємо лічильник одразу
+  updateCartCount();
+  
+  renderCart();
+  renderCatalog();
+  
+  // Анімація видалення
+  const cartCount = $('cartCount');
+  if (cartCount) {
+    cartCount.style.transform = 'scale(0.8)';
+    setTimeout(() => {
+      cartCount.style.transform = 'scale(1)';
+    }, 200);
   }
 }
 
@@ -766,6 +877,11 @@ function removeFromCart(id) {
 // Отримайте API ключ на https://devcenter.novaposhta.ua/
 const NOVA_POSHTA_API_KEY = '57059f80ce7b891a880e70cbe92ee85b'; // Замініть на ваш API ключ
 const NOVA_POSHTA_API_URL = 'https://api.novaposhta.ua/v2.0/json/';
+
+// ⚙️ НАЛАШТУВАННЯ LIQPAY
+// Отримайте ключі на https://www.liqpay.ua/
+const LIQPAY_PUBLIC_KEY = 'YOUR_LIQPAY_PUBLIC_KEY'; // Замініть на ваш public_key
+const LIQPAY_PRIVATE_KEY = 'YOUR_LIQPAY_PRIVATE_KEY'; // Замініть на ваш private_key
 
 // Змінна для зберігання обраного міста (CityRef)
 let selectedCityRef = '';
@@ -1380,9 +1496,14 @@ function checkout(){
           <div class="notice-icon">📦</div>
           <p><strong>${t('shippingNotice')}</strong></p>
         </div>
-        <button type="submit" class="submit-order-btn">
-          <span>${t('checkoutSubmit')}</span>
-        </button>
+        <div class="checkout-buttons">
+          <button type="button" onclick="payWithLiqpay()" class="submit-order-btn liqpay-btn" style="background: linear-gradient(135deg, #2a9d8f 0%, #264653 100%); margin-bottom: 10px;">
+            <span>💳 ${t('checkoutPayWithLiqpay')}</span>
+          </button>
+          <button type="submit" id="submitOrderBtn" class="submit-order-btn" style="background: var(--accent);">
+            <span>${t('checkoutSubmit')}</span>
+          </button>
+        </div>
       </form>
     </div>
   `;
@@ -1400,7 +1521,7 @@ function checkout(){
   Object.keys(cartItems).forEach(id => {
     const p = products.find(x => x.id == id);
     const quantity = cartItems[id];
-    const price = p[lang].price * quantity;
+    const price = getProductPrice(id, quantity);
     total += price;
     orderItems.innerHTML += `
       <div class="order-item">
@@ -1505,6 +1626,45 @@ function submitOrder(event) {
   const formData = new FormData(form);
   const data = Object.fromEntries(formData);
   
+  // Показуємо індикатор завантаження
+  const submitBtn = form.querySelector('#submitOrderBtn') || form.querySelector('.submit-order-btn:not(.liqpay-btn)');
+  const originalText = submitBtn ? submitBtn.innerHTML : '';
+  if (submitBtn) {
+    submitBtn.innerHTML = `<span>${t('checkoutSending')}</span>`;
+    submitBtn.disabled = true;
+  }
+  
+  // Відправляємо замовлення в Telegram
+  sendOrderToTelegram(data, 'заявка')
+    .then(success => {
+      if (success) {
+        // Успішно відправлено
+        cart = [];
+        localStorage.setItem('cart', JSON.stringify(cart));
+        closeCheckoutModal();
+        renderCart();
+        renderCatalog();
+        updateCartCount();
+        alert(t('checkoutSuccess'));
+        if (window.location.pathname.includes('cart.html')) {
+          window.location.href = 'index.html';
+        }
+      } else {
+        throw new Error('Помилка відправки в Telegram');
+      }
+    })
+    .catch(error => {
+      console.error('Помилка:', error);
+      if (submitBtn) {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }
+      alert(t('checkoutError'));
+    });
+}
+
+// Функція для відправки замовлення в Telegram
+function sendOrderToTelegram(data, paymentMethod = 'заявка') {
   // ⚙️ НАЛАШТУВАННЯ - ЗАМІНІТЬ ЦІ ДВА РЯДКИ НА ВАШІ ДАНІ!
   const BOT_TOKEN = '8350738357:AAFQKOU61cuServhRPWQuVaUKTRpcAXG8Vs'; // Токен від @BotFather
   const CHAT_ID = '5591532260'; // Ваш Chat ID від @userinfobot
@@ -1516,25 +1676,28 @@ function submitOrder(event) {
   });
   
   // Формуємо повідомлення для Telegram
-  let message = `🛒 <b>НОВЕ ЗАМОВЛЕННЯ</b>\n\n`;
+  const paymentMethodText = paymentMethod === 'liqpay' ? '💳 ОПЛАТА ЧЕРЕЗ LIQPAY' : '🛒 НОВЕ ЗАМОВЛЕННЯ';
+  let message = `${paymentMethodText}\n\n`;
   message += `👤 <b>Ім'я:</b> ${data.name}\n`;
   message += `👤 <b>Прізвище:</b> ${data.surname}\n`;
   message += `📞 <b>Телефон:</b> ${data.phone}\n`;
   message += `🏙️ <b>Місто/Село:</b> ${data.city}\n`;
   message += `📍 <b>Область:</b> ${data.region || 'Не вказано'}\n`;
   message += `🏢 <b>Відділення НП:</b> ${data.warehouse}\n`;
+  if (paymentMethod === 'liqpay') {
+    message += `💳 <b>Спосіб оплати:</b> LiqPay\n`;
+  }
   message += `\n📦 <b>Товари:</b>\n`;
   
   Object.keys(cartItems).forEach((id, index) => {
     const p = products.find(x => x.id == id);
     const quantity = cartItems[id];
-    const totalPrice = p[lang].price * quantity;
+    const totalPrice = getProductPrice(id, quantity);
     message += `${index + 1}. ${p[lang].name} × ${quantity} = ${totalPrice} ₴\n`;
   });
   
   const total = Object.keys(cartItems).reduce((sum, id) => {
-    const p = products.find(x => x.id == id);
-    return sum + (p[lang].price * cartItems[id]);
+    return sum + getProductPrice(id, cartItems[id]);
   }, 0);
   
   message += `\n💰 <b>Загалом: ${total} ₴</b>\n`;
@@ -1550,13 +1713,7 @@ function submitOrder(event) {
   if (BOT_TOKEN !== 'YOUR_BOT_TOKEN' && CHAT_ID !== 'YOUR_CHAT_ID') {
     const apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
     
-    // Показуємо індикатор завантаження
-    const submitBtn = form.querySelector('.submit-order-btn');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = `<span>${t('checkoutSending')}</span>`;
-    submitBtn.disabled = true;
-    
-    fetch(apiUrl, {
+    return fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1568,32 +1725,167 @@ function submitOrder(event) {
       })
     })
     .then(response => response.json())
-    .then(data => {
-      if (data.ok) {
-        // Успішно відправлено
-        cart = [];
-        localStorage.setItem('cart', JSON.stringify(cart));
-        closeCheckoutModal();
-        renderCart();
-        renderCatalog();
-        updateCartCount();
-        alert(t('checkoutSuccess'));
-        if (window.location.pathname.includes('cart.html')) {
-          window.location.href = 'index.html';
-        }
+    .then(result => {
+      if (result.ok) {
+        console.log('Повідомлення в Telegram відправлено успішно');
+        return true;
       } else {
-        throw new Error(data.description || 'Помилка відправки');
+        console.error('Помилка відправки в Telegram:', result);
+        return false;
       }
     })
     .catch(error => {
-      console.error('Помилка:', error);
-      submitBtn.innerHTML = originalText;
-      submitBtn.disabled = false;
-      alert(t('checkoutError'));
+      console.error('Помилка відправки в Telegram:', error);
+      return false;
     });
   } else {
-    alert(t('checkoutConfigError'));
+    console.warn('BOT_TOKEN або CHAT_ID не налаштовані');
+    return Promise.resolve(false);
   }
+}
+
+// Функція для генерації підпису LiqPay (SHA1)
+function generateLiqpaySignature(data) {
+  // Створюємо рядок для підпису: private_key + data + private_key
+  const stringToSign = LIQPAY_PRIVATE_KEY + data + LIQPAY_PRIVATE_KEY;
+  
+  // Використовуємо CryptoJS для SHA1
+  if (typeof CryptoJS !== 'undefined') {
+    return CryptoJS.SHA1(stringToSign).toString();
+  } else if (typeof LiqPayCheckout !== 'undefined' && LiqPayCheckout.sha1) {
+    return LiqPayCheckout.sha1(stringToSign);
+  } else {
+    console.warn('SHA1 не знайдено. Використовуйте CryptoJS або LiqPay SDK.');
+    return '';
+  }
+}
+
+// Функція для оплати через LiqPay
+function payWithLiqpay() {
+  // Перевіряємо налаштування
+  if (LIQPAY_PUBLIC_KEY === 'YOUR_LIQPAY_PUBLIC_KEY' || LIQPAY_PRIVATE_KEY === 'YOUR_LIQPAY_PRIVATE_KEY') {
+    alert('⚠️ Будь ласка, налаштуйте LIQPAY_PUBLIC_KEY та LIQPAY_PRIVATE_KEY в коді!');
+    return;
+  }
+  
+  // Отримуємо форму
+  const form = document.getElementById('checkoutForm');
+  if (!form) {
+    alert('Помилка: форма не знайдена');
+    return;
+  }
+  
+  // Перевіряємо валідність форми
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+  
+  const formData = new FormData(form);
+  const data = Object.fromEntries(formData);
+  
+  // Розраховуємо суму замовлення
+  const cartItems = {};
+  cart.forEach(id => {
+    cartItems[id] = (cartItems[id] || 0) + 1;
+  });
+  
+  const total = Object.keys(cartItems).reduce((sum, id) => {
+    return sum + getProductPrice(id, cartItems[id]);
+  }, 0);
+  
+  // Генеруємо унікальний ID замовлення
+  const orderId = 'ORDER_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  
+  // Формуємо опис замовлення
+  let description = `Замовлення від ${data.name} ${data.surname}`;
+  
+  // Параметри для LiqPay
+  const liqpayParams = {
+    version: '3',
+    public_key: LIQPAY_PUBLIC_KEY,
+    action: 'pay',
+    amount: total,
+    currency: 'UAH',
+    description: description,
+    order_id: orderId,
+    result_url: window.location.origin + '/index.html?payment=success',
+    language: lang === 'uk' ? 'uk' : 'ru'
+  };
+  
+  // Кодуємо параметри в base64
+  const dataBase64 = btoa(JSON.stringify(liqpayParams));
+  
+  // Генеруємо підпис
+  const signature = generateLiqpaySignature(dataBase64);
+  
+  if (!signature) {
+    alert('Помилка: не вдалося згенерувати підпис. Перевірте підключення CryptoJS.');
+    return;
+  }
+  
+  // Відправляємо замовлення в Telegram перед переходом на оплату
+  const liqpayBtn = form.querySelector('.liqpay-btn');
+  const originalText = liqpayBtn ? liqpayBtn.innerHTML : '';
+  if (liqpayBtn) {
+    liqpayBtn.innerHTML = '<span>⏳ Відправка даних...</span>';
+    liqpayBtn.disabled = true;
+  }
+  
+  // Відправляємо повідомлення в Telegram
+  sendOrderToTelegram(data, 'liqpay')
+    .then(success => {
+      // Продовжуємо з оплатою, навіть якщо Telegram не відправився
+      // Створюємо форму оплати
+      const paymentForm = document.createElement('form');
+      paymentForm.method = 'POST';
+      paymentForm.action = 'https://www.liqpay.ua/api/3/checkout';
+      paymentForm.acceptCharset = 'utf-8';
+      paymentForm.style.display = 'none';
+      
+      const dataInput = document.createElement('input');
+      dataInput.type = 'hidden';
+      dataInput.name = 'data';
+      dataInput.value = dataBase64;
+      paymentForm.appendChild(dataInput);
+      
+      const signatureInput = document.createElement('input');
+      signatureInput.type = 'hidden';
+      signatureInput.name = 'signature';
+      signatureInput.value = signature;
+      paymentForm.appendChild(signatureInput);
+      
+      // Додаємо форму на сторінку і відправляємо
+      document.body.appendChild(paymentForm);
+      paymentForm.submit();
+      
+      // Очищаємо кошик після успішної відправки форми оплати
+      // (форма перенаправить на result_url після оплати)
+    })
+    .catch(error => {
+      console.error('Помилка при відправці в Telegram:', error);
+      // Все одно перенаправляємо на оплату
+      const paymentForm = document.createElement('form');
+      paymentForm.method = 'POST';
+      paymentForm.action = 'https://www.liqpay.ua/api/3/checkout';
+      paymentForm.acceptCharset = 'utf-8';
+      paymentForm.style.display = 'none';
+      
+      const dataInput = document.createElement('input');
+      dataInput.type = 'hidden';
+      dataInput.name = 'data';
+      dataInput.value = dataBase64;
+      paymentForm.appendChild(dataInput);
+      
+      const signatureInput = document.createElement('input');
+      signatureInput.type = 'hidden';
+      signatureInput.name = 'signature';
+      signatureInput.value = signature;
+      paymentForm.appendChild(signatureInput);
+      
+      document.body.appendChild(paymentForm);
+      paymentForm.submit();
+    });
 }
 
 function toggleLang(){

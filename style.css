@@ -1293,6 +1293,13 @@ body.dark .checkout-modal {
   color: var(--text);
 }
 
+.checkout-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
 .submit-order-btn {
   width: 100%;
   padding: 18px;
@@ -1305,11 +1312,14 @@ body.dark .checkout-modal {
   cursor: pointer;
   transition: var(--transition);
   box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
-  margin-top: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
+}
+
+.submit-order-btn.liqpay-btn {
+  margin-bottom: 0;
 }
 
 .submit-order-btn:hover:not(:disabled) {
@@ -1686,6 +1696,54 @@ body.dark .checkout-modal {
   font-size: 18px;
 }
 
+.cart-quantity-selector {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--card);
+}
+
+.cart-quantity-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  user-select: none;
+}
+
+.cart-quantity-btn:hover {
+  background: var(--accent-hover);
+  transform: scale(1.05);
+}
+
+.cart-quantity-btn:active {
+  transform: scale(0.95);
+}
+
+.cart-quantity-value {
+  min-width: 40px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--card);
+  padding: 0 8px;
+}
+
 .remove-btn {
   background: #e74c3c;
   color: white;
@@ -1732,6 +1790,23 @@ body.dark .checkout-modal {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
+  }
+  
+  .cart-quantity-selector {
+    width: 100%;
+    max-width: 150px;
+  }
+  
+  .cart-quantity-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+  }
+  
+  .cart-quantity-value {
+    min-width: 50px;
+    height: 40px;
+    font-size: 18px;
   }
   
   .remove-btn {
