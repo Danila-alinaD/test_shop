@@ -29,6 +29,7 @@ const translations = {
     free: 'Безкоштовно',
     tabDescription: 'Опис',
     tabSpecs: 'Характеристики',
+    tabReviews: 'Відгуки',
     productDescription: 'Опис товару',
     material: 'Матеріал:',
     quantity: 'Кількість:',
@@ -54,7 +55,6 @@ const translations = {
     checkoutOrder: 'Ваше замовлення:',
     checkoutNotice: 'Після оформлення заявки вам передзвонять для підтвердження замовлення',
     checkoutSubmit: 'Відправити заявку',
-    checkoutPayWithLiqpay: 'Оплатити через LiqPay',
     checkoutSending: 'Відправка...',
     checkoutSuccess: '✅ Заявку успішно відправлено! Ми передзвонимо вам найближчим часом.',
     checkoutError: 'Помилка відправки. Спробуйте ще раз або перевірте налаштування бота.',
@@ -92,6 +92,7 @@ const translations = {
     free: 'Бесплатно',
     tabDescription: 'Описание',
     tabSpecs: 'Характеристики',
+    tabReviews: 'Отзывы',
     productDescription: 'Описание товара',
     material: 'Материал:',
     quantity: 'Количество:',
@@ -117,7 +118,6 @@ const translations = {
     checkoutOrder: 'Ваш заказ:',
     checkoutNotice: 'После оформления заявки вам перезвонят для подтверждения заказа',
     checkoutSubmit: 'Отправить заявку',
-    checkoutPayWithLiqpay: 'Оплатить через LiqPay',
     checkoutSending: 'Отправка...',
     checkoutSuccess: '✅ Заявка успешно отправлена! Мы перезвоним вам в ближайшее время.',
     checkoutError: 'Ошибка отправки. Попробуйте еще раз или проверьте настройки бота.',
@@ -256,10 +256,12 @@ function initSearch() {
       // Якщо користувач почав вводити текст, скидаємо фільтр категорій
       if (query.trim().length > 0) {
         sessionStorage.removeItem('activeCategory');
+        sessionStorage.setItem('currentPage', '1'); // Скидаємо на першу сторінку при пошуку
         
         // Очищаємо URL параметр category
         const url = new URL(window.location);
         url.searchParams.delete('category');
+        url.searchParams.set('page', '1'); // Скидаємо на першу сторінку
         window.history.pushState({}, '', url);
         
         // Оновлюємо блоки категорій (прибираємо активний клас)
@@ -275,6 +277,7 @@ function initSearch() {
         const query = e.target.value.trim();
         if (query.length > 0) {
           sessionStorage.setItem('searchQuery', query);
+          sessionStorage.setItem('currentPage', '1'); // Скидаємо на першу сторінку
           // Скидаємо фільтр категорій при переході
           sessionStorage.removeItem('activeCategory');
           window.location.href = 'index.html';
@@ -350,6 +353,7 @@ function filterByCategory(category) {
   // Зберігаємо категорію в sessionStorage (скидається при закритті вкладки)
   sessionStorage.setItem('activeCategory', category);
   sessionStorage.removeItem('searchQuery'); // Очищаємо пошук
+  sessionStorage.setItem('currentPage', '1'); // Скидаємо на першу сторінку
   
   // Очищаємо поле пошуку
   const searchInput = $('search');
@@ -360,6 +364,7 @@ function filterByCategory(category) {
   // Оновлюємо URL
   const url = new URL(window.location);
   url.searchParams.set('category', category);
+  url.searchParams.set('page', '1'); // Скидаємо на першу сторінку
   window.history.pushState({}, '', url);
   
   // Оновлюємо каталог
@@ -378,6 +383,7 @@ function showAllProducts() {
   // Очищаємо категорію та пошук
   sessionStorage.removeItem('activeCategory');
   sessionStorage.removeItem('searchQuery');
+  sessionStorage.setItem('currentPage', '1'); // Скидаємо на першу сторінку
   
   // Очищаємо поле пошуку
   const searchInput = $('search');
@@ -388,6 +394,7 @@ function showAllProducts() {
   // Очищаємо URL параметри
   const url = new URL(window.location);
   url.searchParams.delete('category');
+  url.searchParams.set('page', '1'); // Скидаємо на першу сторінку
   window.history.pushState({}, '', url);
   
   // Оновлюємо каталог та блоки
@@ -417,6 +424,24 @@ function renderCategoryBlocks() {
   });
 }
 
+// Функція для отримання мініатюри зображення
+function getThumbnail(imagePath) {
+  // Якщо зображення вже мініатюра, повертаємо його
+  if (imagePath.includes('_thumb') || imagePath.includes('thumb')) {
+    return imagePath;
+  }
+  
+  // Створюємо шлях до мініатюри (додаємо _thumb перед розширенням)
+  const pathParts = imagePath.split('.');
+  if (pathParts.length > 1) {
+    const extension = pathParts.pop();
+    const basePath = pathParts.join('.');
+    return `${basePath}_thumb.${extension}`;
+  }
+  
+  return imagePath;
+}
+
 function renderCatalog(){
   const box=$('catalog'); if(!box) return;
   const q=sessionStorage.getItem('searchQuery') || $('search')?.value || '';
@@ -425,17 +450,19 @@ function renderCatalog(){
   // Нормалізуємо запит: приводимо до нижнього регістру та прибираємо зайві пробіли
   const normalizedQuery = q.toLowerCase().trim();
   
+  // Отримуємо поточну сторінку з URL або sessionStorage
+  const urlParams = new URLSearchParams(window.location.search);
+  const currentPage = parseInt(urlParams.get('page')) || parseInt(sessionStorage.getItem('currentPage')) || 1;
+  
   box.innerHTML='';
   
   // Фільтруємо товари за категорією
   let filteredProducts = products;
   
   if (activeCategory === 'coloring') {
-    // Розмальовки: товари з ID 1-10
-    filteredProducts = products.filter(p => p.id >= 1 && p.id <= 10);
+    filteredProducts = products.filter(p => p.category === 1);
   } else if (activeCategory === 'stickers') {
-    // Стікери: товари з ID 11-20
-    filteredProducts = products.filter(p => p.id >= 11 && p.id <= 20);
+    filteredProducts = products.filter(p => p.category === 2);
   }
   
   // Фільтруємо товари (незалежно від регістру) - по назві та опису
@@ -447,15 +474,36 @@ function renderCatalog(){
     });
   }
   
+  // Розрахунок пагінації
+  const itemsPerPage = 15;
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const validPage = Math.max(1, Math.min(currentPage, totalPages || 1));
+  
+  // Отримуємо товари для поточної сторінки
+  const startIndex = (validPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const productsToShow = filteredProducts.slice(startIndex, endIndex);
+  
+  // Зберігаємо поточну сторінку
+  sessionStorage.setItem('currentPage', validPage.toString());
+  
   if (filteredProducts.length === 0 && normalizedQuery.length > 0) {
     box.innerHTML = `<div style="text-align: center; padding: 60px; font-size: 20px; color: #999;">${t('notFound')}</div>`;
   } else if (filteredProducts.length === 0) {
     box.innerHTML = `<div style="text-align: center; padding: 60px; font-size: 20px; color: #999;">${t('cartEmptyMessage')}</div>`;
   } else {
-    filteredProducts.forEach(p=>{
+    // Відображаємо товари поточної сторінки
+    productsToShow.forEach(p=>{
+      const thumbnailSrc = getThumbnail(p.images[0]);
+      const originalSrc = p.images[0];
       box.innerHTML+=`
       <div class="card" onclick="window.location.href='product.html?id=${p.id}'" style="cursor: pointer;">
-        <img src="${p.images[0]}" alt="${p[lang].name}">
+        <img src="${thumbnailSrc}" 
+             alt="${p[lang].name} - купити в Tutsi Shop" 
+             loading="lazy"
+             class="catalog-thumbnail"
+             data-original="${originalSrc}"
+             onerror="this.src='${originalSrc}'; this.onerror=null;">
         <div class="card-content">
           <h3>${p[lang].name}</h3>
           <div class="price">${p[lang].price} ₴</div>
@@ -466,7 +514,118 @@ function renderCatalog(){
     });
   }
   
+  // Додаємо пагінацію після grid, якщо товарів більше ніж на одну сторінку
+  if (filteredProducts.length > 0 && totalPages > 1) {
+    // Видаляємо попередню пагінацію, якщо вона є
+    const existingPagination = document.getElementById('catalog-pagination');
+    if (existingPagination) {
+      existingPagination.remove();
+    }
+    
+    // Створюємо новий контейнер для пагінації
+    const paginationContainer = document.createElement('div');
+    paginationContainer.id = 'catalog-pagination';
+    paginationContainer.innerHTML = renderPagination(validPage, totalPages, activeCategory, normalizedQuery);
+    
+    // Додаємо пагінацію після grid контейнера
+    if (box.parentNode) {
+      box.parentNode.insertBefore(paginationContainer, box.nextSibling);
+    }
+  } else {
+    // Видаляємо пагінацію, якщо вона не потрібна
+    const existingPagination = document.getElementById('catalog-pagination');
+    if (existingPagination) {
+      existingPagination.remove();
+    }
+  }
+  
   updateCartCount();
+}
+
+// Функція для відображення пагінації
+function renderPagination(currentPage, totalPages, category, searchQuery) {
+  let paginationHTML = '<div class="pagination-wrapper">';
+  
+  // Кнопка "Попередня"
+  if (currentPage > 1) {
+    paginationHTML += `<button class="pagination-btn" onclick="goToPage(${currentPage - 1})">‹ Попередня</button>`;
+  } else {
+    paginationHTML += `<button class="pagination-btn disabled" disabled>‹ Попередня</button>`;
+  }
+  
+  // Номери сторінок
+  paginationHTML += '<div class="pagination-numbers">';
+  
+  // Показуємо першу сторінку
+  if (currentPage > 3) {
+    paginationHTML += `<button class="pagination-number" onclick="goToPage(1)">1</button>`;
+    if (currentPage > 4) {
+      paginationHTML += `<span class="pagination-dots">...</span>`;
+    }
+  }
+  
+  // Показуємо сторінки навколо поточної
+  const startPage = Math.max(1, currentPage - 2);
+  const endPage = Math.min(totalPages, currentPage + 2);
+  
+  for (let i = startPage; i <= endPage; i++) {
+    if (i === currentPage) {
+      paginationHTML += `<button class="pagination-number active">${i}</button>`;
+    } else {
+      paginationHTML += `<button class="pagination-number" onclick="goToPage(${i})">${i}</button>`;
+    }
+  }
+  
+  // Показуємо останню сторінку
+  if (currentPage < totalPages - 2) {
+    if (currentPage < totalPages - 3) {
+      paginationHTML += `<span class="pagination-dots">...</span>`;
+    }
+    paginationHTML += `<button class="pagination-number" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+  }
+  
+  paginationHTML += '</div>';
+  
+  // Кнопка "Наступна"
+  if (currentPage < totalPages) {
+    paginationHTML += `<button class="pagination-btn" onclick="goToPage(${currentPage + 1})">Наступна ›</button>`;
+  } else {
+    paginationHTML += `<button class="pagination-btn disabled" disabled>Наступна ›</button>`;
+  }
+  
+  paginationHTML += '</div>';
+  
+  return paginationHTML;
+}
+
+// Функція для переходу на сторінку
+function goToPage(page) {
+  const url = new URL(window.location);
+  url.searchParams.set('page', page);
+  window.history.pushState({}, '', url);
+  sessionStorage.setItem('currentPage', page.toString());
+  
+  // Оновлюємо каталог
+  renderCatalog();
+  
+  // Прокручуємо до заголовка каталогу після оновлення DOM
+  setTimeout(() => {
+    const catalogTitle = document.querySelector('.page-title');
+    const catalogElement = document.getElementById('catalog');
+    
+    // Прокручуємо до заголовка каталогу
+    if (catalogTitle) {
+      const titlePosition = catalogTitle.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({ top: titlePosition - 20, behavior: 'smooth' });
+    } else if (catalogElement) {
+      // Якщо заголовка немає, прокручуємо до каталогу
+      const catalogPosition = catalogElement.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({ top: catalogPosition - 20, behavior: 'smooth' });
+    } else {
+      // Якщо нічого не знайдено, використовуємо стандартну прокрутку
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, 150);
 }
 
 // Галерея товару з каруселлю
@@ -512,9 +671,9 @@ function renderProduct(){
           </div>
           
           <div class="product-price-section">
-            <div class="product-price" id="productPrice_${p.id}">${p.id >= 1 && p.id <= 10 ? '300' : p[lang].price} ₴</div>
-            ${p.id >= 1 && p.id <= 10 ? `<div class="product-price-info" id="productPricePerUnit_${p.id}" style="font-size: 14px; color: var(--text); opacity: 0.7; margin-top: 5px; display: none;"></div>` : ''}
-            ${p.id >= 1 && p.id <= 10 ? `<div class="product-price-breakdown" style="font-size: 13px; color: var(--text); opacity: 0.6; margin-top: 10px; line-height: 1.6;">
+            <div class="product-price" id="productPrice_${p.id}">${p.category === 1 ? '300' : p[lang].price} ₴</div>
+            ${p.category === 1 ? `<div class="product-price-info" id="productPricePerUnit_${p.id}" style="font-size: 14px; color: var(--text); opacity: 0.7; margin-top: 5px; display: none;"></div>` : ''}
+            ${p.category === 1 ? `<div class="product-price-breakdown" style="font-size: 13px; color: var(--text); opacity: 0.6; margin-top: 10px; line-height: 1.6;">
               <div>1 шт - 300 ₴</div>
               <div>2 шт - 560 ₴</div>
               <div>3 шт - 810 ₴</div>
@@ -542,7 +701,7 @@ function renderProduct(){
               <span>${t('novaPoshtaBranch')}</span>
               <span>${t('shippingNextDay')}</span>
             </div>
-            ${p.id >= 1 && p.id <= 10 ? '' : `
+            ${p.category === 1 ? '' : `
             <div class="delivery-option">
               <span>${t('novaPoshtaPostomat')}</span>
               <span>${t('shippingNextDay')}</span>
@@ -555,7 +714,7 @@ function renderProduct(){
             <div class="delivery-notice" style="margin-top: 15px; padding: 12px; background: #e7f3ff; border-left: 4px solid #2196F3; border-radius: 8px; font-size: 14px; color: #0d47a1;">
               <strong>ℹ️ ${t('shippingNotice')}</strong>
             </div>
-            ${p.id >= 1 && p.id <= 10 ? `
+            ${p.category === 1 ? `
             <div class="delivery-notice" style="margin-top: 10px; padding: 12px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 8px; font-size: 14px; color: #856404;">
               <strong>⚠️ ${t('coloringDeliveryNotice')}</strong>
             </div>
@@ -568,6 +727,7 @@ function renderProduct(){
       <div class="product-tabs">
         <button class="tab-btn active" onclick="showTab('description', this)">${t('tabDescription')}</button>
         <button class="tab-btn" onclick="showTab('specs', this)">${t('tabSpecs')}</button>
+        <button class="tab-btn" onclick="showTab('reviews', this)">${t('tabReviews')}</button>
       </div>
       
       <div class="product-tab-content">
@@ -597,11 +757,21 @@ function renderProduct(){
             </div>
           </div>
         </div>
+        
+        <div id="tab-reviews" class="tab-panel">
+          <div id="cusdis_thread" 
+               data-host="https://cusdis.com" 
+               data-app-id="03d5d4c2-8fe8-44af-b06d-6464c4e527fc" 
+               data-page-id="product-${p.id}" 
+               data-page-url="${window.location.href}" 
+               data-page-title="${p[lang].name}">
+          </div>
+        </div>
       </div>
     </div>`;
   
-  // Ініціалізуємо відображення ціни для розмальовок
-  if (p.id >= 1 && p.id <= 10) {
+  // Ініціалізуємо відображення ціни для розмальовок (акційні ціни для всіх)
+  if (p.category === 1) {
     setTimeout(() => updateProductPriceDisplay(p.id), 0);
   }
 }
@@ -649,6 +819,83 @@ function showTab(tabName, buttonElement) {
   if (buttonElement) {
     buttonElement.classList.add('active');
   }
+  
+  // Ініціалізуємо Cusdis для вкладки відгуків
+  if (tabName === 'reviews') {
+    setTimeout(() => {
+      const cusdisThread = document.getElementById('cusdis_thread');
+      if (cusdisThread) {
+        // Перевіряємо, чи вже ініціалізовано
+        if (cusdisThread.dataset.cusdisInitialized === 'true') {
+          return; // Вже ініціалізовано
+        }
+        
+        cusdisThread.dataset.cusdisInitialized = 'true';
+        
+        // Завантажуємо скрипт Cusdis
+        const loadCusdisScript = () => {
+          const existingScript = document.querySelector('script[src*="cusdis.es.js"]');
+          if (existingScript && window.render) {
+            // Скрипт вже завантажений
+            initCusdisWidget();
+            return;
+          }
+          
+          // Завантажуємо скрипт
+          const script = document.createElement('script');
+          script.src = 'https://cusdis.com/js/cusdis.es.js';
+          script.async = true;
+          script.defer = true;
+          script.onload = () => {
+            // Чекаємо трохи, щоб скрипт повністю ініціалізувався
+            setTimeout(initCusdisWidget, 200);
+          };
+          script.onerror = () => {
+            console.error('Помилка завантаження Cusdis скрипту');
+            cusdisThread.innerHTML = '<p style="text-align: center; padding: 20px; color: var(--text); opacity: 0.7;">Не вдалося завантажити систему відгуків. Спробуйте оновити сторінку.</p>';
+          };
+          document.body.appendChild(script);
+        };
+        
+        // Функція ініціалізації віджету
+        const initCusdisWidget = () => {
+          // Cusdis використовує window.render() для ініціалізації
+          if (window.render && typeof window.render === 'function') {
+            try {
+              window.render();
+              console.log('Cusdis ініціалізовано');
+            } catch(e) {
+              console.error('Помилка ініціалізації Cusdis:', e);
+            }
+          } else {
+            // Якщо window.render ще не доступний, чекаємо
+            let attempts = 0;
+            const maxAttempts = 30;
+            const checkInterval = setInterval(() => {
+              attempts++;
+              if (window.render && typeof window.render === 'function') {
+                try {
+                  window.render();
+                  console.log('Cusdis ініціалізовано (після очікування)');
+                  clearInterval(checkInterval);
+                } catch(e) {
+                  console.error('Помилка ініціалізації Cusdis:', e);
+                  clearInterval(checkInterval);
+                }
+              } else if (attempts >= maxAttempts) {
+                console.warn('Cusdis не вдалося ініціалізувати після очікування');
+                clearInterval(checkInterval);
+              }
+            }, 200);
+          }
+        };
+        
+        loadCusdisScript();
+      } else {
+        console.warn('Елемент cusdis_thread не знайдено');
+      }
+    }, 300);
+  }
 }
 
 function renderCart(){
@@ -669,7 +916,8 @@ function renderCart(){
     const p = products.find(x => x.id == id);
     const quantity = cartItems[id];
     const totalPrice = getProductPrice(id, quantity);
-    const unitPrice = id >= 1 && id <= 10 ? (quantity >= 4 ? 250 : (totalPrice / quantity)) : p[lang].price;
+    const isColoringTiered = p.category === 1;
+    const unitPrice = isColoringTiered ? (quantity >= 4 ? 250 : (totalPrice / quantity)) : p[lang].price;
     return `
       <div class="cart-item">
         <div class="cart-item-content">
@@ -677,7 +925,7 @@ function renderCart(){
           <div class="cart-item-info">
             <h3>${p[lang].name}</h3>
             <div class="cart-item-price">
-              <div class="price">${unitPrice.toFixed(0)} ₴${id >= 1 && id <= 10 && quantity >= 4 ? ' за шт' : ''}</div>
+              <div class="price">${unitPrice.toFixed(0)} ₴${isColoringTiered && quantity >= 4 ? ' за шт' : ''}</div>
               <div class="cart-quantity-selector">
                 <button class="cart-quantity-btn minus" onclick="changeCartQuantity(${id}, -1)">−</button>
                 <span class="cart-quantity-value">${quantity}</span>
@@ -719,12 +967,9 @@ function getProductPrice(productId, quantity) {
   const p = products.find(x => x.id == productId);
   if (!p) return 0;
   
-  // Розмальовки (id 1-10) мають спеціальну цінову політику
-  if (productId >= 1 && productId <= 10) {
-    return getColoringPrice(quantity);
-  }
+  // Усі розмальовки (category === 1) мають акційну ціну
+  if (p.category === 1) return getColoringPrice(quantity);
   
-  // Для інших товарів - стандартна ціна
   return p[lang].price * quantity;
 }
 
@@ -740,8 +985,8 @@ function updateProductPriceDisplay(productId) {
   const p = products.find(x => x.id == productId);
   if (!p) return;
   
-  // Якщо це розмальовка, використовуємо спеціальну ціну
-  if (productId >= 1 && productId <= 10) {
+  const isColoringTiered = p.category === 1;
+  if (isColoringTiered) {
     const totalPrice = getColoringPrice(quantity);
     priceElement.textContent = `${totalPrice} ₴`;
     
@@ -877,11 +1122,6 @@ function removeFromCart(id) {
 // Отримайте API ключ на https://devcenter.novaposhta.ua/
 const NOVA_POSHTA_API_KEY = '57059f80ce7b891a880e70cbe92ee85b'; // Замініть на ваш API ключ
 const NOVA_POSHTA_API_URL = 'https://api.novaposhta.ua/v2.0/json/';
-
-// ⚙️ НАЛАШТУВАННЯ LIQPAY
-// Отримайте ключі на https://www.liqpay.ua/
-const LIQPAY_PUBLIC_KEY = 'YOUR_LIQPAY_PUBLIC_KEY'; // Замініть на ваш public_key
-const LIQPAY_PRIVATE_KEY = 'YOUR_LIQPAY_PRIVATE_KEY'; // Замініть на ваш private_key
 
 // Змінна для зберігання обраного міста (CityRef)
 let selectedCityRef = '';
@@ -1429,8 +1669,10 @@ function checkout(){
     clickOutsideHandler = null;
   }
   
-  // Перевіряємо, чи в кошику тільки розмальовки (id 1-10)
-  const hasOnlyColoring = cart.length > 0 && cart.every(id => id >= 1 && id <= 10);
+  const hasOnlyColoring = cart.length > 0 && cart.every(id => {
+    const prod = products.find(x => x.id == id);
+    return prod && prod.category === 1;
+  });
   
   // Створюємо модальне вікно з формою
   const modal = document.createElement('div');
@@ -1496,14 +1738,9 @@ function checkout(){
           <div class="notice-icon">📦</div>
           <p><strong>${t('shippingNotice')}</strong></p>
         </div>
-        <div class="checkout-buttons">
-          <button type="button" onclick="payWithLiqpay()" class="submit-order-btn liqpay-btn" style="background: linear-gradient(135deg, #2a9d8f 0%, #264653 100%); margin-bottom: 10px;">
-            <span>💳 ${t('checkoutPayWithLiqpay')}</span>
-          </button>
-          <button type="submit" id="submitOrderBtn" class="submit-order-btn" style="background: var(--accent);">
-            <span>${t('checkoutSubmit')}</span>
-          </button>
-        </div>
+        <button type="submit" class="submit-order-btn">
+          <span>${t('checkoutSubmit')}</span>
+        </button>
       </form>
     </div>
   `;
@@ -1626,45 +1863,6 @@ function submitOrder(event) {
   const formData = new FormData(form);
   const data = Object.fromEntries(formData);
   
-  // Показуємо індикатор завантаження
-  const submitBtn = form.querySelector('#submitOrderBtn') || form.querySelector('.submit-order-btn:not(.liqpay-btn)');
-  const originalText = submitBtn ? submitBtn.innerHTML : '';
-  if (submitBtn) {
-    submitBtn.innerHTML = `<span>${t('checkoutSending')}</span>`;
-    submitBtn.disabled = true;
-  }
-  
-  // Відправляємо замовлення в Telegram
-  sendOrderToTelegram(data, 'заявка')
-    .then(success => {
-      if (success) {
-        // Успішно відправлено
-        cart = [];
-        localStorage.setItem('cart', JSON.stringify(cart));
-        closeCheckoutModal();
-        renderCart();
-        renderCatalog();
-        updateCartCount();
-        alert(t('checkoutSuccess'));
-        if (window.location.pathname.includes('cart.html')) {
-          window.location.href = 'index.html';
-        }
-      } else {
-        throw new Error('Помилка відправки в Telegram');
-      }
-    })
-    .catch(error => {
-      console.error('Помилка:', error);
-      if (submitBtn) {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-      }
-      alert(t('checkoutError'));
-    });
-}
-
-// Функція для відправки замовлення в Telegram
-function sendOrderToTelegram(data, paymentMethod = 'заявка') {
   // ⚙️ НАЛАШТУВАННЯ - ЗАМІНІТЬ ЦІ ДВА РЯДКИ НА ВАШІ ДАНІ!
   const BOT_TOKEN = '8350738357:AAFQKOU61cuServhRPWQuVaUKTRpcAXG8Vs'; // Токен від @BotFather
   const CHAT_ID = '5591532260'; // Ваш Chat ID від @userinfobot
@@ -1676,17 +1874,13 @@ function sendOrderToTelegram(data, paymentMethod = 'заявка') {
   });
   
   // Формуємо повідомлення для Telegram
-  const paymentMethodText = paymentMethod === 'liqpay' ? '💳 ОПЛАТА ЧЕРЕЗ LIQPAY' : '🛒 НОВЕ ЗАМОВЛЕННЯ';
-  let message = `${paymentMethodText}\n\n`;
+  let message = `🛒 <b>НОВЕ ЗАМОВЛЕННЯ</b>\n\n`;
   message += `👤 <b>Ім'я:</b> ${data.name}\n`;
   message += `👤 <b>Прізвище:</b> ${data.surname}\n`;
   message += `📞 <b>Телефон:</b> ${data.phone}\n`;
   message += `🏙️ <b>Місто/Село:</b> ${data.city}\n`;
   message += `📍 <b>Область:</b> ${data.region || 'Не вказано'}\n`;
   message += `🏢 <b>Відділення НП:</b> ${data.warehouse}\n`;
-  if (paymentMethod === 'liqpay') {
-    message += `💳 <b>Спосіб оплати:</b> LiqPay\n`;
-  }
   message += `\n📦 <b>Товари:</b>\n`;
   
   Object.keys(cartItems).forEach((id, index) => {
@@ -1713,7 +1907,13 @@ function sendOrderToTelegram(data, paymentMethod = 'заявка') {
   if (BOT_TOKEN !== 'YOUR_BOT_TOKEN' && CHAT_ID !== 'YOUR_CHAT_ID') {
     const apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
     
-    return fetch(apiUrl, {
+    // Показуємо індикатор завантаження
+    const submitBtn = form.querySelector('.submit-order-btn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = `<span>${t('checkoutSending')}</span>`;
+    submitBtn.disabled = true;
+    
+    fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1725,167 +1925,32 @@ function sendOrderToTelegram(data, paymentMethod = 'заявка') {
       })
     })
     .then(response => response.json())
-    .then(result => {
-      if (result.ok) {
-        console.log('Повідомлення в Telegram відправлено успішно');
-        return true;
+    .then(data => {
+      if (data.ok) {
+        // Успішно відправлено
+        cart = [];
+        localStorage.setItem('cart', JSON.stringify(cart));
+        closeCheckoutModal();
+        renderCart();
+        renderCatalog();
+        updateCartCount();
+        alert(t('checkoutSuccess'));
+        if (window.location.pathname.includes('cart.html')) {
+          window.location.href = 'index.html';
+        }
       } else {
-        console.error('Помилка відправки в Telegram:', result);
-        return false;
+        throw new Error(data.description || 'Помилка відправки');
       }
     })
     .catch(error => {
-      console.error('Помилка відправки в Telegram:', error);
-      return false;
+      console.error('Помилка:', error);
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+      alert(t('checkoutError'));
     });
   } else {
-    console.warn('BOT_TOKEN або CHAT_ID не налаштовані');
-    return Promise.resolve(false);
+    alert(t('checkoutConfigError'));
   }
-}
-
-// Функція для генерації підпису LiqPay (SHA1)
-function generateLiqpaySignature(data) {
-  // Створюємо рядок для підпису: private_key + data + private_key
-  const stringToSign = LIQPAY_PRIVATE_KEY + data + LIQPAY_PRIVATE_KEY;
-  
-  // Використовуємо CryptoJS для SHA1
-  if (typeof CryptoJS !== 'undefined') {
-    return CryptoJS.SHA1(stringToSign).toString();
-  } else if (typeof LiqPayCheckout !== 'undefined' && LiqPayCheckout.sha1) {
-    return LiqPayCheckout.sha1(stringToSign);
-  } else {
-    console.warn('SHA1 не знайдено. Використовуйте CryptoJS або LiqPay SDK.');
-    return '';
-  }
-}
-
-// Функція для оплати через LiqPay
-function payWithLiqpay() {
-  // Перевіряємо налаштування
-  if (LIQPAY_PUBLIC_KEY === 'YOUR_LIQPAY_PUBLIC_KEY' || LIQPAY_PRIVATE_KEY === 'YOUR_LIQPAY_PRIVATE_KEY') {
-    alert('⚠️ Будь ласка, налаштуйте LIQPAY_PUBLIC_KEY та LIQPAY_PRIVATE_KEY в коді!');
-    return;
-  }
-  
-  // Отримуємо форму
-  const form = document.getElementById('checkoutForm');
-  if (!form) {
-    alert('Помилка: форма не знайдена');
-    return;
-  }
-  
-  // Перевіряємо валідність форми
-  if (!form.checkValidity()) {
-    form.reportValidity();
-    return;
-  }
-  
-  const formData = new FormData(form);
-  const data = Object.fromEntries(formData);
-  
-  // Розраховуємо суму замовлення
-  const cartItems = {};
-  cart.forEach(id => {
-    cartItems[id] = (cartItems[id] || 0) + 1;
-  });
-  
-  const total = Object.keys(cartItems).reduce((sum, id) => {
-    return sum + getProductPrice(id, cartItems[id]);
-  }, 0);
-  
-  // Генеруємо унікальний ID замовлення
-  const orderId = 'ORDER_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-  
-  // Формуємо опис замовлення
-  let description = `Замовлення від ${data.name} ${data.surname}`;
-  
-  // Параметри для LiqPay
-  const liqpayParams = {
-    version: '3',
-    public_key: LIQPAY_PUBLIC_KEY,
-    action: 'pay',
-    amount: total,
-    currency: 'UAH',
-    description: description,
-    order_id: orderId,
-    result_url: window.location.origin + '/index.html?payment=success',
-    language: lang === 'uk' ? 'uk' : 'ru'
-  };
-  
-  // Кодуємо параметри в base64
-  const dataBase64 = btoa(JSON.stringify(liqpayParams));
-  
-  // Генеруємо підпис
-  const signature = generateLiqpaySignature(dataBase64);
-  
-  if (!signature) {
-    alert('Помилка: не вдалося згенерувати підпис. Перевірте підключення CryptoJS.');
-    return;
-  }
-  
-  // Відправляємо замовлення в Telegram перед переходом на оплату
-  const liqpayBtn = form.querySelector('.liqpay-btn');
-  const originalText = liqpayBtn ? liqpayBtn.innerHTML : '';
-  if (liqpayBtn) {
-    liqpayBtn.innerHTML = '<span>⏳ Відправка даних...</span>';
-    liqpayBtn.disabled = true;
-  }
-  
-  // Відправляємо повідомлення в Telegram
-  sendOrderToTelegram(data, 'liqpay')
-    .then(success => {
-      // Продовжуємо з оплатою, навіть якщо Telegram не відправився
-      // Створюємо форму оплати
-      const paymentForm = document.createElement('form');
-      paymentForm.method = 'POST';
-      paymentForm.action = 'https://www.liqpay.ua/api/3/checkout';
-      paymentForm.acceptCharset = 'utf-8';
-      paymentForm.style.display = 'none';
-      
-      const dataInput = document.createElement('input');
-      dataInput.type = 'hidden';
-      dataInput.name = 'data';
-      dataInput.value = dataBase64;
-      paymentForm.appendChild(dataInput);
-      
-      const signatureInput = document.createElement('input');
-      signatureInput.type = 'hidden';
-      signatureInput.name = 'signature';
-      signatureInput.value = signature;
-      paymentForm.appendChild(signatureInput);
-      
-      // Додаємо форму на сторінку і відправляємо
-      document.body.appendChild(paymentForm);
-      paymentForm.submit();
-      
-      // Очищаємо кошик після успішної відправки форми оплати
-      // (форма перенаправить на result_url після оплати)
-    })
-    .catch(error => {
-      console.error('Помилка при відправці в Telegram:', error);
-      // Все одно перенаправляємо на оплату
-      const paymentForm = document.createElement('form');
-      paymentForm.method = 'POST';
-      paymentForm.action = 'https://www.liqpay.ua/api/3/checkout';
-      paymentForm.acceptCharset = 'utf-8';
-      paymentForm.style.display = 'none';
-      
-      const dataInput = document.createElement('input');
-      dataInput.type = 'hidden';
-      dataInput.name = 'data';
-      dataInput.value = dataBase64;
-      paymentForm.appendChild(dataInput);
-      
-      const signatureInput = document.createElement('input');
-      signatureInput.type = 'hidden';
-      signatureInput.name = 'signature';
-      signatureInput.value = signature;
-      paymentForm.appendChild(signatureInput);
-      
-      document.body.appendChild(paymentForm);
-      paymentForm.submit();
-    });
 }
 
 function toggleLang(){
